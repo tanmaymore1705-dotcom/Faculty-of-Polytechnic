@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Faculty of Polytechnic — Python in 8 Weeks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ─────────────────────────  THEME  ───────────────────────── */
+  :root {
+    --bg:       #0A0A0F;
+    --surface:  #111122;
+    --card:     #15152A;
+    --card-hover:#17172E;
+    --border:   #262640;
+    --border-br:#353556;
+    --text:     #E2E8F0;
+    --text-br:  #F1F5F9;
+    --muted:    #94A3B8;
+    --dim:      #64748B;
+    --faint:    #475569;
+    --cyan:     #00D4FF;
+    --cyan-dim: #0891A8;
+    --yellow:   #FFD43B;
+    --green:    #34D399;
+    --red:      #F87171;
+    --purple:   #A78BFA;
+    --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --disp: 'Space Grotesk', 'IBM Plex Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+
+  /* ─────────────────────────  HEADER  ───────────────────────── */
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    padding: 36px 40px 28px;
+    background: linear-gradient(180deg, #0d0d1a 0%, var(--bg) 100%);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 14px;
+  }
+
+  .site-title {
+    font-family: var(--disp);
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--text-br);
+    line-height: 1.08;
+    letter-spacing: -0.5px;
+  }
+
+  .site-sub {
+    font-size: 16px;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 8px;
+  }
+
+  /* ─────────────────────────  STATS ROW  ───────────────────────── */
+  .stats-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 28px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 28px;
+    min-width: 140px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: var(--disp);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--cyan);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ─────────────────────────  HOW IT WORKS  ───────────────────────── */
+  .how-section {
+    padding: 32px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-heading {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 20px;
+  }
+
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .how-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 24px;
+  }
+
+  .how-title {
+    font-family: var(--disp);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cyan);
+    margin-bottom: 12px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .how-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .how-list li {
+    font-size: 14px;
+    color: var(--muted);
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
+  }
+
+  .how-list li:last-child { border-bottom: none; }
+
+  .how-list li::before {
+    content: '▸';
+    color: var(--faint);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ─────────────────────────  TAB BAR  ───────────────────────── */
+  .tabs-bar {
+    padding: 24px 40px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+  }
+
+  .mod-tab {
+    all: unset;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    padding: 12px 20px;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    transition: color .2s, background .2s, border-color .2s;
+    position: relative;
+    bottom: -1px;
+  }
+
+  .mod-tab:hover {
+    color: var(--text);
+    background: rgba(255,255,255,.04);
+  }
+
+  .mod-tab.active {
+    background: var(--bg);
+    border-color: var(--border);
+    border-bottom-color: var(--bg);
+  }
+
+  .mod-tab .tab-accent {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    margin-top: 6px;
+    width: 100%;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+
+  .mod-tab.active .tab-accent {
+    opacity: 1;
+  }
+
+  /* ─────────────────────────  MODULE BODY  ───────────────────────── */
+  .module-body {
+    padding: 32px 40px;
+    max-width: 960px;
+  }
+
+  .module-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .module-bar {
+    width: 4px;
+    height: 100%;
+    min-height: 48px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    align-self: stretch;
+  }
+
+  .module-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .module-title {
+    font-family: var(--disp);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-br);
+  }
+
+  /* ─────────────────────────  DAY CARDS  ───────────────────────── */
+  .days-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .day-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color .2s, background .15s;
+    overflow: hidden;
+  }
+
+  .day-card:hover {
+    background: var(--card-hover);
+  }
+  .day-card:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 2px;
+  }
+
+  .day-card.done {
+    opacity: 0.6;
+  }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    position: relative;
+  }
+
+  .day-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .day-title-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  .done-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: var(--green);
+    background: rgba(52,211,153,.1);
+    border: 1px solid rgba(52,211,153,.25);
+    border-radius: 999px;
+    padding: 2px 8px;
+    flex-shrink: 0;
+  }
+
+  .chevron {
+    font-size: 10px;
+    color: var(--dim);
+    transition: transform .2s;
+    flex-shrink: 0;
+  }
+
+  .chevron.open {
+    transform: rotate(180deg);
+  }
+
+  .day-body {
+    padding: 0 18px 18px;
+    border-top: 1px solid var(--border);
+    margin-top: 0;
+    padding-top: 16px;
+  }
+
+  .topic-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 14px;
+  }
+
+  .topic-list li {
+    font-size: 13.5px;
+    color: var(--muted);
+    padding: 5px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    border-bottom: 1px solid rgba(38,38,64,.6);
+    line-height: 1.4;
+  }
+
+  .topic-list li:last-child { border-bottom: none; }
+
+  .topic-list li::before {
+    content: '·';
+    color: var(--dim);
+    flex-shrink: 0;
+    font-size: 18px;
+    line-height: 1.1;
+  }
+
+  .lab-box {
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+
+  .lab-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .lab-text {
+    font-size: 13.5px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  /* ─────────────────────────  FOOTER  ───────────────────────── */
+  .site-footer {
+    margin-top: 48px;
+    padding: 24px 40px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--faint);
+    line-height: 1.6;
+  }
+
+  .site-footer code {
+    color: var(--cyan);
+    background: rgba(0,212,255,.08);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  /* ─────────────────────────  RESPONSIVE  ───────────────────────── */
+  @media (max-width: 720px) {
+    .site-title { font-size: 32px; }
+    .how-grid { grid-template-columns: 1fr; }
+    .stats-row { gap: 10px; }
+    .stat-box { min-width: 120px; padding: 14px 18px; }
+    .module-body { padding: 20px; }
+    .tabs-bar { padding: 16px 20px 0; }
+    .how-section, .stats-row, .site-header { padding-left: 20px; padding-right: 20px; }
+    .site-footer { padding: 20px; }
+    .mod-tab { padding: 10px 14px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════ HEADER ═══════ -->
+<header class="site-header">
+  <div class="eyebrow">Course Plan &nbsp;·&nbsp; v1 &nbsp;·&nbsp; 2026-05-29</div>
+  <h1 class="site-title">Python in 8 Weeks</h1>
+  <p class="site-sub">A 2-month introduction for diploma CS students</p>
+</header>
+
+<main>
+
+<!-- ═══════ STATS ROW ═══════ -->
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-val" id="stat-modules">3</div>
+    <div class="stat-label">Modules</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-val" id="stat-days">40</div>
+    <div class="stat-label">Days</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-val" id="stat-projects">5</div>
+    <div class="stat-label">Mini-Projects</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-val" id="stat-capstone">1</div>
+    <div class="stat-label">Capstone</div>
+  </div>
+</div>
+
+<!-- ═══════ HOW IT WORKS ═══════ -->
+<section class="how-section">
+  <div class="section-heading">How it works</div>
+  <div class="how-grid">
+
+    <div class="how-card">
+      <div class="how-title">Daily rhythm</div>
+      <ul class="how-list">
+        <li>09:00–10:15 &nbsp;Lecture (75 min)</li>
+        <li>11:00–12:00 &nbsp;Lab (60 min)</li>
+        <li>Mon–Wed: concept + 2 small problems</li>
+        <li>Thu: "Combine" day — one larger problem</li>
+        <li>Fri: recap + Friday mini-project (PR = artifact)</li>
+      </ul>
+    </div>
+
+    <div class="how-card">
+      <div class="how-title">Submission flow</div>
+      <ul class="how-list">
+        <li>Fork the upstream repo</li>
+        <li>Sync fork each morning for new starters</li>
+        <li>Solve inside <code style="font-family:monospace;font-size:12px;color:var(--cyan)">students/&lt;username&gt;/</code></li>
+        <li>Commit + push to your fork</li>
+        <li>Open a PR upstream — faculty reviews &amp; merges</li>
+      </ul>
+    </div>
+
+    <div class="how-card">
+      <div class="how-title">Assessment</div>
+      <ul class="how-list">
+        <li>5 Friday mini-project PRs (graded)</li>
+        <li>Mini-Quiz 1 — D10 (loops + conditions)</li>
+        <li>Mini-Quiz 2 — D20 (strings + lists)</li>
+        <li>Mini-Quiz 3 — D30 (dicts + files)</li>
+        <li>Final mini-test — D39 (60 min practical)</li>
+        <li>Capstone PR — D40 (weighted highest)</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════ MODULE TABS ═══════ -->
+<div class="tabs-bar">
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<!-- ═══════ MODULE BODY ═══════ -->
+<div class="module-body" id="module-body"></div>
+
+</main>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer class="site-footer">
+  Built for diploma CS students &nbsp;·&nbsp; 2026 &nbsp;·&nbsp;
+  See <code>syllabus/COURSE_DESIGN.md</code> for the full design doc.
+</footer>
+
+<script>
+const syllabus = [
+  {
+    module: 1,
+    title: "Python Foundations",
+    color: "#00D4FF",
+    weeks: "Weeks 1–3",
+    days: [
+      { day: 1,  title: "Binary + GitHub + PR flow",         topics: ["Bits and bytes", "GitHub account creation", "The browser-based PR flow"], lab: "problem_1.py — seconds in a week", done: true },
+      { day: 2,  title: "Python Essentials I",                topics: ["Variables and types", "if/elif/else", "for and while loops", "Functions"], lab: "FizzBuzz + warm-ups", done: true },
+      { day: 3,  title: "Collections",                        topics: ["Lists, tuples, dicts, sets", "Iteration patterns"], lab: "Review with class", done: true },
+      { day: 4,  title: "I/O, Types &amp; Conversions",       topics: ["input() returns a string", "int() / float() / str()", "f-strings revisited", "Common conversion bugs"], lab: "Greeter + tip calculator" },
+      { day: 5,  title: "Mini-project: About Me script",      topics: ["Recap of weeks topics", "Friday project"], lab: "Reads inputs, prints formatted bio. ★ input validation" },
+      { day: 6,  title: "if/elif/else deep dive",             topics: ["Chained conditions", "Nested if", "Boolean operators"], lab: "Grade classifier, leap year check" },
+      { day: 7,  title: "for loops + range()",                topics: ["Counters", "Accumulators", "range() patterns"], lab: "Sum 1..N, multiplication tables" },
+      { day: 8,  title: "while loops + break/continue",       topics: ["When to use while vs for", "Infinite loop pitfall", "break and continue"], lab: "Find-first-match problems" },
+      { day: 9,  title: "Combine day — loops + conditions",   topics: ["Pattern printing", "Prime check algorithm"], lab: "Combined loop + condition exercises" },
+      { day: 10, title: "Mini-Quiz 1 + Number Guessing Game", topics: ["15-min quiz: loops + conditions", "Friday project"], lab: "Number Guessing Game. ★ track attempts, warmer/colder hint" },
+      { day: 11, title: "Functions I",                        topics: ["Define and call functions", "Parameters", "Return values"], lab: "Refactor D5 script into functions" },
+      { day: 12, title: "Functions II",                       topics: ["Multiple params, defaults", "Returning multiple values", "Function composition"], lab: "Geometry helpers (area, perimeter)" },
+      { day: 13, title: "Scope — local vs global",            topics: ["Local vs global variables", "Why globals are usually bad"], lab: "Bug-hunt exercise" },
+      { day: 14, title: "Combine day — refactor",             topics: ["Refactor messy code into clean functions", "Code readability"], lab: "Given spaghetti code, clean it" },
+      { day: 15, title: "Mini-project: Simple Calculator",    topics: ["Friday project"], lab: "Functions for +, −, ×, ÷, %. ★ history of operations" },
+    ]
+  },
+  {
+    module: 2,
+    title: "Python in Practice",
+    color: "#A78BFA",
+    weeks: "Weeks 4–6",
+    days: [
+      { day: 16, title: "String methods",                     topics: ["split, join, replace", "lower, upper, strip", "Cleaning messy text"], lab: "Clean up messy text input" },
+      { day: 17, title: "String slicing + indexing",          topics: ["s[2:5], s[::-1] slicing", "Indexing and negative indices", "Practical string tricks"], lab: "Palindrome check, initials extractor" },
+      { day: 18, title: "List operations",                    topics: ["append, sort, index, pop", "Membership testing (in)", "List manipulation patterns"], lab: "Roll-call manager" },
+      { day: 19, title: "Combine day — text + list",          topics: ["Using strings and lists together", "Word deduplication logic"], lab: "Word-list deduplicator" },
+      { day: 20, title: "Mini-Quiz 2 + Word Counter",         topics: ["15-min quiz: strings + lists", "Friday project"], lab: "Count words/lines/chars in a paragraph" },
+      { day: 21, title: "Dict basics",                        topics: ["Key-value pairs", "Lookup and iteration", "Polkadot flavor: wallet-address → owner lookup"], lab: "Build a tiny wallet-address → owner lookup" },
+      { day: 22, title: "Common dict patterns",               topics: ["Counting with dicts", "Grouping items", "Dict comprehensions intro"], lab: "Vote tally, group names by first letter" },
+      { day: 23, title: "Sets — unique values",               topics: ["Set basics", "Membership testing", "Union, intersection, difference"], lab: "Find common/unique items between lists" },
+      { day: 24, title: "Combine day — nested dicts/lists",   topics: ["Nesting dicts inside lists", "Accessing nested data", "Real-world shaped data"], lab: "Library catalog (book → author/year)" },
+      { day: 25, title: "Mini-project: Word Frequency Counter", topics: ["Friday project"], lab: "Read text → dict of word counts, print top 5" },
+      { day: 26, title: "Reading text files",                 topics: ["open() and with statement", "Line-by-line iteration", "Stripping newlines"], lab: "Read a names file, print each" },
+      { day: 27, title: "Writing files + CSV-like data",      topics: ["Writing with open(mode='w')", "Splitting on commas", "Appending to files"], lab: "Save results to a file" },
+      { day: 28, title: "try/except basics",                  topics: ["Catching FileNotFoundError", "Handling bad input", "try/except/else pattern"], lab: "Robust input handler" },
+      { day: 29, title: "import — random, math, datetime",    topics: ["Using the standard library", "random.choice, math.sqrt", "Weighted-random validator picker (seeds D36)"], lab: "Random quiz generator" },
+      { day: 30, title: "Mini-Quiz 3 + Grade Sheet Reader",   topics: ["15-min quiz: dicts + files", "Friday project"], lab: "Read CSV of marks, compute avg &amp; grade per student" },
+    ]
+  },
+  {
+    module: 3,
+    title: "Capstone: Tiny Blockchain",
+    color: "#FFD43B",
+    weeks: "Weeks 7–8",
+    days: [
+      { day: 31, title: "What is a hash? hashlib.sha256",     topics: ["hashlib.sha256 in Python", "Avalanche effect — change 1 char, everything changes", "Real anchor: Polkadot block hashes use Blake2 (show on Subscan)"], lab: "Hash strings; observe avalanche effect" },
+      { day: 32, title: "A block = a dict",                   topics: ["Polkadot blocks have parent_hash, number, state_root, extrinsics_root", "Our toy block mirrors the first two fields", "make_block() function"], lab: "Write make_block() with parent_hash and number fields" },
+      { day: 33, title: "A chain = a list",                   topics: ["Every Polkadot block points to its parent via parent_hash", "Building a list of linked block dicts", "Show two consecutive blocks on Subscan"], lab: "Build a 3-block chain manually" },
+      { day: 34, title: "Validation",                         topics: ["Polkadot validators run heavy checks (signatures, state transitions)", "Ours: does each parent_hash match the previous block's hash?", "is_valid_chain() function"], lab: "Tamper with one block, prove is_valid_chain() catches it" },
+      { day: 35, title: "Capstone Checkpoint",                topics: ["Working linked + validated chain", "Code review and cleanup", "Friday project"], lab: "★ add an extrinsics field (list of transactions)" },
+      { day: 36, title: "Consensus — PoW then PoS",           topics: ["Bitcoin Proof of Work — code a nonce loop", "Polkadot Nominated Proof of Stake — validators chosen by staked DOT", "20-line weighted-random validator picker (compare both)"], lab: "Mine 3 blocks with simplified PoW. ★ rewrite as PoS validator picker" },
+      { day: 37, title: "CLI menu — your mini Polkadot.js",   topics: ["Framing: a terminal version of Polkadot.js", "while True menu loop", "add / view / validate commands"], lab: "Wrap chain ops in an add/view/validate menu" },
+      { day: 38, title: "Save/load JSON",                     topics: ["Real Polkadot nodes persist state in a database", "We use a JSON file — json.dump / json.load", "Persist chain across runs"], lab: "Save chain to file; reload on startup" },
+      { day: 39, title: "Final mini-test (60 min practical)", topics: ["2 Python problems (functions + data structures)", "1 small blockchain extension", "Closed-book, individual work"], lab: "— (no separate lab; test is the session)" },
+      { day: 40, title: "Presentations + course wrap-up",     topics: ["Each student demos their chain (~5 min)", "Where to go next: Polkadot docs, Subscan, substrate-connect", "The old blockchain-syllabus.html as your next-6-months reading list"], lab: "Each student presents their chain to the class" },
+    ]
+  }
+];
+
+let activeModule = 0;
+let expandedDay = null;
+
+function hex(color, alpha) {
+  return color + Math.round(alpha * 255).toString(16).padStart(2, '0');
+}
+
+function renderTabs() {
+  const container = document.getElementById('tabs');
+  container.innerHTML = '';
+  syllabus.forEach((m, i) => {
+    const btn = document.createElement('button');
+    const isActive = i === activeModule;
+    btn.className = 'mod-tab' + (isActive ? ' active' : '');
+    btn.innerHTML = `<span style="opacity:.6">M${m.module} · </span>${m.title}<span class="tab-accent" style="background:${m.color}"></span>`;
+    if (isActive) {
+      btn.style.color = m.color;
+    }
+    btn.addEventListener('click', () => {
+      activeModule = i;
+      expandedDay = null;
+      renderTabs();
+      renderModule();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function renderModule() {
+  const mod = syllabus[activeModule];
+  const body = document.getElementById('module-body');
+
+  let html = `
+    <div class="module-heading">
+      <div class="module-bar" style="background: linear-gradient(to bottom, ${mod.color}, ${hex(mod.color, 0.27)})"></div>
+      <div>
+        <div class="module-eyebrow" style="color:${mod.color}">Module ${mod.module} &nbsp;·&nbsp; ${mod.weeks} &nbsp;·&nbsp; ${mod.days.length} days</div>
+        <div class="module-title">${mod.title}</div>
+      </div>
+    </div>
+    <div class="days-list">
+  `;
+
+  mod.days.forEach(day => {
+    const isOpen = expandedDay === day.day;
+    const isDone = !!day.done;
+
+    const topicsHtml = day.topics.map(t => `<li>${t}</li>`).join('');
+
+    const bodyHtml = isOpen ? `
+      <div class="day-body">
+        <ul class="topic-list">${topicsHtml}</ul>
+        <div class="lab-box" style="background:${hex(mod.color, 0.06)};border:1px solid ${hex(mod.color, 0.2)}">
+          <div class="lab-label" style="color:${mod.color}">Lab / Project</div>
+          <div class="lab-text">${day.lab}</div>
+        </div>
+      </div>
+    ` : '';
+
+    const doneBadge = isDone ? `<span class="done-badge">&#10003; done</span>` : '';
+
+    html += `
+      <div class="day-card${isDone ? ' done' : ''}" role="button" tabindex="0" aria-expanded="${isOpen}" aria-label="Day ${day.day}: ${day.title}" style="border-color:${isOpen ? hex(mod.color, 0.35) : 'var(--border)'}" data-day="${day.day}">
+        <div class="day-header">
+          <div class="day-badge" style="background:${hex(mod.color, 0.13)};color:${mod.color}">Day ${day.day}</div>
+          <div class="day-title-text">${day.title}</div>
+          ${doneBadge}
+          <div class="chevron${isOpen ? ' open' : ''}">&#9660;</div>
+        </div>
+        ${bodyHtml}
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  body.innerHTML = html;
+
+  // Toggle day expansion — mouse and keyboard
+  const toggle = (card) => {
+    const d = parseInt(card.dataset.day);
+    expandedDay = expandedDay === d ? null : d;
+    renderModule();
+  };
+  body.querySelectorAll('.day-card').forEach(card => {
+    card.addEventListener('click', () => toggle(card));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle(card);
+      }
+    });
+  });
+}
+
+// Init — Module 1 active by default
+renderTabs();
+renderModule();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+$ python3 D04_greeter.py
+Your name? Aisha
+Your age? 19
+Hi Aisha! Next year you will be 20.
+
+Bill amount? 850.50
+Tip percentage? 12
+Tip: 102.06
+Total: 952.56
