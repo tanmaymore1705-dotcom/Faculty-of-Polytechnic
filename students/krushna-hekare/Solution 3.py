@@ -1,6 +1,6 @@
 #problem 1
 x=0
-y=1
+total=0   # FIX(faculty): initialise total before the loop (was used before assignment -> NameError)
 while x<10:
   x=x+1
   total=total+1
