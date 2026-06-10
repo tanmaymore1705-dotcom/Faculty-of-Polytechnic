@@ -65,14 +65,14 @@ problems across the course earns a "Stretch Award" at the wrap-up.
 | D1  | Binary + GitHub + PR flow (done)                 | `problem_1.py` — seconds in a week        |
 | D2  | Python Essentials I — vars, if/else, loops, funcs (done) | FizzBuzz + warm-ups               |
 | D3  | Collections — lists, tuples, dicts, sets (done)  | (review with class)                       |
-| D4  | I/O, types, conversions — `input()`, `int()`/`str()`, f-strings revisited | Greeter + tip calculator |
-| D5 (Fri) | Recap + **Mini-project: "About Me" script** | Reads inputs, prints formatted bio. ★ input validation |
-| D6  | `if/elif/else` deep dive — chained, nested, boolean ops | Grade classifier, leap year check |
-| D7  | `for` loops + `range()` — counters, accumulators | Sum 1..N, multiplication tables           |
-| D8  | `while` loops, `break`/`continue`, infinite loops | Find-first-match problems                |
-| D9  | Combine day — loops + conditions                 | Pattern printing, prime check             |
-| D10 (Fri) | **Mini-Quiz 1** + **Mini-project: Number Guessing Game** | ★ track attempts, warmer/colder hint |
-| D11 | Functions — define, call, parameters, return     | Refactor D5 script into functions         |
+| D4  | I/O, types, conversions — `input()`, `int()`/`str()`, f-strings revisited (done) | Greeter + tip calculator |
+| D5 (Fri) | Recap + **Mini-project: "About Me" script** (done) | Reads inputs, prints formatted bio. ★ input validation |
+| D6  | `if/elif/else` deep dive — chained, nested, boolean ops (done) | Grade classifier, leap year check |
+| D7  | `for` loops + `range()` — counters, accumulators (done) | Sum 1..N, multiplication tables           |
+| D8  | `while` loops, `break`/`continue`, infinite loops (done) | Find-first-match problems                |
+| D9  | Combine day — loops + conditions (done)          | Pattern printing, prime check             |
+| D10 (Fri) | **Mini-Quiz 1** + **Mini-project: Number Guessing Game** (done) | ★ track attempts, warmer/colder hint |
+| D11 | Functions — define, call, parameters, return (done) | Refactor D5 script into functions         |
 | D12 | Multiple params, defaults, returning multiple values | Geometry helpers (area, perimeter)    |
 | D13 | Scope — local vs global; why globals are usually bad | Bug-hunt exercise                     |
 | D14 | Combine day — refactor messy code into clean functions | Given spaghetti code, clean it       |
