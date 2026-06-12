@@ -6,7 +6,7 @@ while True:
 
     if guess == num:
         print("Right")
-        
+        break
     else:
         print("Wrong")
 #problem no 2
@@ -17,6 +17,6 @@ while True:
 
     if guess == num:
         print("Right")
-        break
+        
     else:
         print("Wrong")
