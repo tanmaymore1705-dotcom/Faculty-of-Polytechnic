@@ -62,3 +62,88 @@ print(d["Vijay"])
 d.update({"Tom": 2, "Don": 10})
 
 print(d)
+
+
+
+
+
+#problem7
+num=10
+unum=0
+while unum != num:
+    uinp=int(input(".....1-10:"))
+    unum=uinp
+    print("incorrect guess")
+print("correct...")
+
+#problem8
+num = 10
+
+guess = int(input("Guess a number between 1 and 100: "))
+
+if guess == num:
+    print("Correct Guess")
+elif guess < num:
+    print("Too Low")
+else:
+    print("Too High")
+
+#problem9
+num = 10
+
+for unum in [5, 20, 10]:
+    if unum == num:
+        print(unum, "- Correct")
+    elif unum < num:
+        print(unum, "- Low")
+    else:
+        print(unum, "- High")
+#problem10
+def greet():
+    name = input("Enter your name: ")
+    age = int(input("Enter your age: "))
+
+    print("Hi", name + "!", "Next year you will be", age + 1)
+
+greet()
+
+#problem11
+
+def tip_calculator():
+    bill = float(input("Enter bill amount: "))
+    tip_percent = float(input("Enter tip percentage: "))
+
+    tip = bill * tip_percent / 100
+    total = bill + tip
+
+    print(f"Tip: {tip:.2f}")
+    print(f"Total: {total:.2f}")
+
+tip_calculator()
+
+
+
+#Problem8
+num=10
+unum=0
+while True :
+    uinp=int(input("....."))
+    unum=uinp
+    if uinp !=num:
+        print("incorrect")
+    else:
+        print("correct")
+        break
+
+
+
+
+#Problem9
+n = 5
+students = []
+
+for i in range(n):
+    name = input(f"Enter name of student {i+1}: ")
+    students.append(name)
+
+print("Student Names:")

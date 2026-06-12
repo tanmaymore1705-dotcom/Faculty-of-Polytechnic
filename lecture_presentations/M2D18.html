@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module 2 · Day 18 — List Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ─────────────────────────  THEME  ───────────────────────── */
+  :root{
+    --bg:#0A0A0F; --surface:#111122; --card:#15152A;
+    --border:#262640; --border-br:#353556;
+    --text:#E2E8F0; --text-br:#F1F5F9; --muted:#94A3B8; --dim:#64748B; --faint:#475569;
+    --cyan:#00D4FF; --cyan-dim:#0891A8; --yellow:#FFD43B; --green:#34D399; --red:#F87171; --purple:#A78BFA;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+    --disp:'Space Grotesk','IBM Plex Sans',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#050507; color:var(--text); font-family:var(--sans);
+    overflow:hidden; display:grid; place-items:center;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ─────────────────────────  STAGE  ───────────────────────── */
+  .scaler{ transform-origin:center center; }
+  .stage{
+    width:1280px; height:720px; position:relative;
+    background:var(--bg); overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.6); border-radius:10px;
+  }
+  .slide{
+    position:absolute; inset:0; padding:56px 64px 48px;
+    display:flex; flex-direction:column;
+    opacity:0; visibility:hidden; transition:opacity .35s ease;
+  }
+  .slide.active{ opacity:1; visibility:visible; }
+
+  /* staggered entrance */
+  .slide.active .r{ animation:rise .5s cubic-bezier(.2,.7,.2,1) both;
+    animation-delay:calc(var(--d,0) * 55ms); }
+  @keyframes rise{ from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none} }
+
+  /* ─────────────────────────  PRIMITIVES  ───────────────────────── */
+  .eyebrow{ font-family:var(--mono); font-size:13px; font-weight:600;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--cyan); }
+  .h-title{ font-family:var(--disp); font-weight:700; color:var(--text-br);
+    line-height:1.08; }
+  .lede{ font-size:17px; color:var(--muted); line-height:1.55; max-width:62ch; }
+  .body-text{ font-size:18px; color:var(--text); line-height:1.55; max-width:64ch; }
+
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:10px; }
+  .card.accent{ border-color:var(--cyan); background:rgba(0,212,255,.05); }
+
+  /* code block */
+  .code{ background:#0c0c14; border:1px solid var(--border); border-radius:9px;
+    overflow:hidden; display:flex; flex-direction:column; min-height:0; }
+  .cbar{ display:flex; align-items:center; gap:7px; padding:9px 13px;
+    border-bottom:1px solid var(--border); flex:0 0 auto; }
+  .cd{ width:9px; height:9px; border-radius:50%; background:#5C5C7A; }
+  .cf{ margin-left:8px; font-family:var(--mono); font-size:11.5px; color:var(--dim); }
+  .cpre{ margin:0; padding:14px 16px; overflow:auto; flex:1 1 auto; }
+  .cpre code{ font-family:var(--mono); font-size:15px; line-height:1.62;
+    color:var(--text); white-space:pre; display:block; }
+  /* syntax */
+  .kw{ color:var(--cyan); } .const{ color:var(--purple); }
+  .bif{ color:var(--yellow); } .num{ color:#FFA657; }
+  .str{ color:var(--green); } .com{ color:var(--dim); font-style:italic; }
+  .err{ color:var(--red); font-style:italic; }
+
+  /* ─────────────────────────  HUD  ───────────────────────── */
+  .progress{ position:fixed; top:0; left:0; height:3px; background:var(--cyan);
+    width:0; z-index:50; transition:width .35s ease; box-shadow:0 0 10px var(--cyan); }
+  .hud{ position:fixed; bottom:18px; right:20px; z-index:50;
+    display:flex; align-items:center; gap:14px;
+    font-family:var(--mono); font-size:13px; color:var(--dim);
+    background:rgba(17,17,34,.72); backdrop-filter:blur(8px);
+    border:1px solid var(--border); border-radius:999px; padding:7px 14px;
+    opacity:.5; transition:opacity .25s; }
+  .hud:hover{ opacity:1; }
+  .hud button{ all:unset; cursor:pointer; color:var(--muted); line-height:0;
+    padding:3px 6px; border-radius:6px; transition:color .15s,background .15s;
+    font-size:16px; font-family:var(--mono); }
+  .hud button:hover{ color:var(--cyan); background:rgba(0,212,255,.1); }
+  .hud .count b{ color:var(--cyan); }
+  .hud .sep{ width:1px; height:16px; background:var(--border); }
+  .hint{ position:fixed; bottom:18px; left:20px; z-index:50;
+    font-family:var(--mono); font-size:11px; color:var(--faint);
+    opacity:.7; transition:opacity .6s; }
+  .hint.gone{ opacity:0; }
+  .hint b{ color:var(--dim); }
+
+  /* slide-specific helpers */
+  .day-tag{ position:absolute; top:58px; right:72px; font-family:var(--mono);
+    font-size:14px; color:var(--dim); letter-spacing:.18em; }
+  .footer{ margin-top:auto; }
+  .callout{ border-left:3px solid var(--yellow); background:rgba(255,212,59,.06);
+    padding:14px 18px; border-radius:6px; color:var(--text); font-size:15px;
+    line-height:1.55; }
+  .callout b{ color:var(--yellow); }
+  .pill{ display:inline-block; font-family:var(--mono); font-size:12px;
+    background:rgba(0,212,255,.13); color:var(--cyan); padding:3px 9px;
+    border-radius:999px; letter-spacing:.06em; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
+  .num-list{ list-style:none; counter-reset:s; padding:0; }
+  .num-list li{ counter-increment:s; padding:10px 0 10px 46px; position:relative;
+    font-size:17px; color:var(--text); line-height:1.55; border-bottom:1px solid var(--border); }
+  .num-list li:last-child{ border-bottom:none; }
+  .num-list li::before{ content:counter(s,decimal-leading-zero);
+    position:absolute; left:0; top:10px; font-family:var(--mono);
+    font-size:14px; color:var(--cyan); font-weight:600; }
+
+  /* ─────────────────────────  PRINT (PDF backup)  ───────────────────────── */
+  @media print{
+    @page{ size:1280px 720px; margin:0; }
+    body{ display:block; overflow:visible; background:#fff; }
+    .scaler{ transform:none !important; }
+    .stage{ box-shadow:none; border-radius:0; }
+    .slide{ position:relative; opacity:1 !important; visibility:visible !important;
+      page-break-after:always; break-after:page; transition:none; }
+    .slide .r{ animation:none !important; }
+    .hud,.hint,.progress{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="scaler" id="scaler">
+<div class="stage" id="stage">
+
+  <!-- ═══════ SLIDE 1 · TITLE ═══════ -->
+  <section class="slide active" style="justify-content:center; padding:64px 72px;">
+    <div style="position:absolute;inset:0;
+      background-image:repeating-linear-gradient(transparent 0,transparent 89px,var(--border) 89px,var(--border) 90px);
+      opacity:.6;"></div>
+    <div style="position:relative;">
+      <div class="r eyebrow" style="--d:0; margin-bottom:26px;">&gt;&gt; Module 02 / Day 18 / Lecture</div>
+      <h1 class="r h-title" style="--d:1; font-size:74px; letter-spacing:-1px;">List Operations</h1>
+      <div class="r" style="--d:2; font-family:var(--disp); font-weight:500; font-style:italic;
+        font-size:40px; color:var(--cyan); margin-top:10px;">Collections that grow and change</div>
+
+      <div class="r" style="--d:3; margin-top:44px; font-size:18px; color:var(--muted); max-width:60ch; line-height:1.55;">
+        You met lists back in Module 1. Now you'll really <em style="color:var(--text);">work</em> them — add, remove, search, and sort — the everyday verbs of real programs.
+      </div>
+
+      <div class="r" style="--d:4; display:flex; gap:42px; margin-top:46px; font-size:15px;
+        font-family:var(--sans);">
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Lecture</span>
+          <div style="color:var(--text-br);margin-top:4px;">75 min · 09:00–10:15</div></div>
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Lab</span>
+          <div style="color:var(--text-br);margin-top:4px;">60 min · Roll-call Manager</div></div>
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Module</span>
+          <div style="color:var(--cyan);margin-top:4px;">M2 · Python in Practice</div></div>
+      </div>
+    </div>
+    <div class="day-tag">DAY 18 / 40</div>
+  </section>
+
+  <!-- ═══════ SLIDE 2 · AGENDA ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Today's roadmap</div>
+    <h2 class="r h-title" style="--d:1; font-size:44px; margin-top:8px;">The verbs of a list</h2>
+
+    <ol class="r num-list" style="--d:2; margin-top:30px; max-width:80ch;">
+      <li>Lists <b style="color:var(--text-br);">can change</b> — unlike strings (this is big)</li>
+      <li>Growing — <code style="font-family:var(--mono);color:var(--bif,var(--yellow));">.append()</code>, <code style="font-family:var(--mono);color:var(--yellow);">.insert()</code></li>
+      <li>Shrinking — <code style="font-family:var(--mono);color:var(--yellow);">.remove()</code>, <code style="font-family:var(--mono);color:var(--yellow);">.pop()</code></li>
+      <li>Searching — <code style="font-family:var(--mono);color:var(--cyan);">in</code>, <code style="font-family:var(--mono);color:var(--yellow);">.index()</code>, <code style="font-family:var(--mono);color:var(--yellow);">.count()</code></li>
+      <li>Ordering — <code style="font-family:var(--mono);color:var(--yellow);">.sort()</code> vs <code style="font-family:var(--mono);color:var(--yellow);">sorted()</code>, <code style="font-family:var(--mono);color:var(--yellow);">len()</code></li>
+      <li>Lab — a roll-call manager</li>
+    </ol>
+
+    <div class="r footer" style="--d:3; display:flex; align-items:center; gap:14px;
+      border:1.5px solid var(--cyan); border-radius:10px; padding:14px 20px;
+      background:rgba(0,212,255,.04);">
+      <span class="pill">PRACTICAL · 1 HR</span>
+      <span style="font-size:16px;color:var(--text);">By noon: a PR with a working menu to add, remove, and search students.</span>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 3 · LISTS CAN CHANGE ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 01 / 05 · The key difference</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Lists are <em>mutable</em> — they change in place</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      This is the opposite of strings. With a string you had to catch a new value. With a list, the methods change the <b style="color:var(--text);">same list</b> directly.
+    </p>
+
+    <div class="grid-2" style="margin-top:24px; flex:1; min-height:0;">
+      <div class="r code" style="--d:3;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">strings_vs_lists.py</span></div>
+<pre class="cpre"><code><span class="com"># String — must reassign:</span>
+<span class="kw">name</span> = name.upper()
+
+<span class="com"># List — changes itself, NO reassign:</span>
+<span class="kw">marks</span> = [<span class="num">70</span>, <span class="num">85</span>]
+marks.append(<span class="num">90</span>)     <span class="com"># marks is now [70, 85, 90]</span>
+<span class="com"># NOT: marks = marks.append(90)  ← returns None!</span></code></pre>
+      </div>
+      <div class="r callout" style="--d:4; align-self:start;">
+        <b>The trap.</b><br>
+        <code style="font-family:var(--mono);color:var(--yellow);">marks = marks.append(90)</code> sets <code style="font-family:var(--mono);color:var(--green);">marks</code> to <code style="font-family:var(--mono);color:var(--purple);">None</code> and loses your list. Just call <code style="font-family:var(--mono);">marks.append(90)</code> on its own line.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 4 · GROWING ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 02 / 05 · Growing a list</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;">Add items: <code style="font-family:var(--mono);font-weight:700;">.append()</code> &amp; <code style="font-family:var(--mono);font-weight:700;">.insert()</code></h2>
+
+    <div class="r code" style="--d:2; margin-top:24px; max-width:900px;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">growing.py</span></div>
+<pre class="cpre"><code><span class="kw">queue</span> = [<span class="str">"Aisha"</span>, <span class="str">"Rohit"</span>]
+
+queue.append(<span class="str">"Sneha"</span>)        <span class="com"># ['Aisha', 'Rohit', 'Sneha'] — adds at END</span>
+queue.insert(<span class="num">0</span>, <span class="str">"Vikram"</span>)    <span class="com"># ['Vikram', 'Aisha', 'Rohit', 'Sneha']</span>
+                            <span class="com"># insert(position, item) — squeezes in</span></code></pre>
+    </div>
+
+    <div class="r footer callout" style="--d:3; margin-top:24px;">
+      <b>99% of the time you want <code style="font-family:var(--mono);color:var(--yellow);">.append()</code>.</b> It's the workhorse: start with an empty list <code style="font-family:var(--mono);color:var(--green);">[]</code> and append as you go — exactly what you did in the initials loop yesterday.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 5 · SHRINKING ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 03 / 05 · Shrinking a list</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;">Remove items: <code style="font-family:var(--mono);font-weight:700;">.remove()</code> &amp; <code style="font-family:var(--mono);font-weight:700;">.pop()</code></h2>
+
+    <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:22px; margin-top:24px; flex:1; min-height:0;">
+      <div class="r code" style="--d:2;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">shrinking.py</span></div>
+<pre class="cpre"><code><span class="kw">names</span> = [<span class="str">"Aisha"</span>, <span class="str">"Rohit"</span>, <span class="str">"Sneha"</span>]
+
+names.remove(<span class="str">"Rohit"</span>)  <span class="com"># remove by VALUE → ['Aisha','Sneha']</span>
+
+<span class="kw">last</span> = names.pop()    <span class="com"># remove by POSITION (default: last)</span>
+                      <span class="com"># last == 'Sneha', names == ['Aisha']</span>
+<span class="kw">first</span> = names.pop(<span class="num">0</span>)  <span class="com"># pop a specific index, returns it</span></code></pre>
+      </div>
+      <div class="r callout" style="--d:3; align-self:start;">
+        <b>remove vs pop.</b><br>
+        <code style="font-family:var(--mono);color:var(--yellow);">.remove("x")</code> = "delete this <b>value</b>". <code style="font-family:var(--mono);color:var(--yellow);">.pop(i)</code> = "delete the item at this <b>position</b> and hand it back to me".
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 6 · SEARCHING ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 04 / 05 · Searching a list</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;">Is it there? Where? How many?</h2>
+
+    <div class="r code" style="--d:2; margin-top:22px; flex:1; min-height:0;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">searching.py</span></div>
+<pre class="cpre"><code><span class="kw">roll</span> = [<span class="str">"Aisha"</span>, <span class="str">"Rohit"</span>, <span class="str">"Sneha"</span>, <span class="str">"Rohit"</span>]
+
+<span class="str">"Sneha"</span> <span class="kw">in</span> roll        <span class="com"># True  — the membership test</span>
+<span class="str">"Karan"</span> <span class="kw">in</span> roll        <span class="com"># False</span>
+
+roll.index(<span class="str">"Rohit"</span>)      <span class="com"># 1 — position of FIRST match</span>
+roll.count(<span class="str">"Rohit"</span>)      <span class="com"># 2 — how many times it appears</span>
+<span class="bif">len</span>(roll)               <span class="com"># 4 — how many items total</span></code></pre>
+    </div>
+
+    <div class="r footer callout" style="--d:3; margin-top:18px;">
+      <b>Always check before you act.</b> <code style="font-family:var(--mono);color:var(--green);">if "Karan" in roll:</code> protects you — calling <code style="font-family:var(--mono);">.remove()</code> or <code style="font-family:var(--mono);">.index()</code> on a missing value raises a <code style="font-family:var(--mono);color:var(--red);">ValueError</code>.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 7 · SORTING ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 05 / 05 · Ordering a list</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;"><code style="font-family:var(--mono);font-weight:700;">.sort()</code> vs <code style="font-family:var(--mono);font-weight:700;">sorted()</code> — know the difference</h2>
+
+    <div class="grid-2" style="margin-top:24px; flex:1; min-height:0;">
+      <div class="r code" style="--d:2;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">in_place.py</span></div>
+<pre class="cpre"><code><span class="com"># .sort() — changes the list itself</span>
+<span class="kw">marks</span> = [<span class="num">85</span>, <span class="num">70</span>, <span class="num">92</span>]
+marks.sort()           <span class="com"># marks is now [70, 85, 92]</span>
+marks.sort(reverse=<span class="const">True</span>) <span class="com"># [92, 85, 70]</span></code></pre>
+      </div>
+      <div class="r code" style="--d:3;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">new_copy.py</span></div>
+<pre class="cpre"><code><span class="com"># sorted() — returns a NEW sorted list</span>
+<span class="kw">marks</span> = [<span class="num">85</span>, <span class="num">70</span>, <span class="num">92</span>]
+<span class="kw">ranked</span> = <span class="bif">sorted</span>(marks)  <span class="com"># [70, 85, 92]</span>
+<span class="com"># marks is UNCHANGED: [85, 70, 92]</span></code></pre>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:4; margin-top:20px;">
+      <b>Rule:</b> <code style="font-family:var(--mono);color:var(--yellow);">list.sort()</code> rearranges in place and returns <code style="font-family:var(--mono);color:var(--purple);">None</code>. <code style="font-family:var(--mono);color:var(--yellow);">sorted(list)</code> leaves the original alone and gives you a fresh, sorted copy. Strings and numbers both sort naturally.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 8 · ITERATING RECAP ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Tying it together</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;">Walk the list, do something to each</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      Everything from Module 1 still works: loop over a list, and combine these new verbs inside the loop.
+    </p>
+
+    <div class="r code" style="--d:3; margin-top:22px; max-width:900px;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">together.py</span></div>
+<pre class="cpre"><code><span class="kw">roll</span> = [<span class="str">"aisha"</span>, <span class="str">"ROHIT"</span>, <span class="str">"sneha"</span>]
+
+<span class="com"># Clean every name (D16) and collect into a new list</span>
+<span class="kw">clean</span> = []
+<span class="kw">for</span> name <span class="kw">in</span> roll:
+    <span class="kw">clean</span>.append(name.title())   <span class="com"># build up the result</span>
+
+clean.sort()                     <span class="com"># alphabetical</span>
+<span class="bif">print</span>(clean, <span class="str">"·"</span>, <span class="bif">len</span>(clean), <span class="str">"students"</span>)
+<span class="com"># → ['Aisha', 'Rohit', 'Sneha'] · 3 students</span></code></pre>
+    </div>
+
+    <div class="r footer" style="--d:4; display:flex; gap:14px; align-items:center; margin-top:18px;">
+      <span class="pill">PATTERN</span>
+      <span style="font-size:15px;color:var(--muted);">Empty list → loop → append → sort. You'll use this shape constantly.</span>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 9 · MISTAKES ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Common failures</div>
+    <h2 class="r h-title" style="--d:1; font-size:42px; margin-top:8px;">Four mistakes you'll make today</h2>
+
+    <ol class="r num-list" style="--d:2; margin-top:26px;">
+      <li>Writing <code style="font-family:var(--mono);color:var(--green);">marks = marks.append(x)</code> — <code style="font-family:var(--mono);">.append</code> returns <code style="font-family:var(--mono);color:var(--purple);">None</code>, so you lose the list.</li>
+      <li><code style="font-family:var(--mono);color:var(--green);">.remove("x")</code> when <code style="font-family:var(--mono);">"x"</code> isn't there → <code style="font-family:var(--mono);color:var(--red);">ValueError</code>. Check with <code style="font-family:var(--mono);color:var(--cyan);">in</code> first.</li>
+      <li>Expecting <code style="font-family:var(--mono);color:var(--green);">sorted(marks)</code> to change <code style="font-family:var(--mono);">marks</code> — it doesn't; catch the return.</li>
+      <li>Confusing <code style="font-family:var(--mono);color:var(--yellow);">.remove(value)</code> with <code style="font-family:var(--mono);color:var(--yellow);">.pop(index)</code> — one takes a value, the other a position.</li>
+    </ol>
+  </section>
+
+  <!-- ═══════ SLIDE 10 · LAB PREVIEW ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 11:00 – 12:00 · Lab</div>
+    <h2 class="r h-title" style="--d:1; font-size:42px; margin-top:8px;">Today's lab — Roll-Call Manager</h2>
+
+    <div class="grid-2" style="margin-top:30px;">
+      <div class="r card" style="--d:2; padding:24px;">
+        <div class="pill">CORE</div>
+        <div style="font-family:var(--disp); font-size:24px; font-weight:600; color:var(--text-br); margin-top:14px;">A menu over a list</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:15px; line-height:1.55;">
+          Keep a list of student names. A loop menu lets the user <b style="color:var(--text);">add</b>, <b style="color:var(--text);">remove</b>, <b style="color:var(--text);">search</b>, and <b style="color:var(--text);">list all</b> (sorted, with a count).
+        </p>
+      </div>
+      <div class="r card" style="--d:3; padding:24px;">
+        <div class="pill">★ STRETCH</div>
+        <div style="font-family:var(--disp); font-size:24px; font-weight:600; color:var(--text-br); margin-top:14px;">Guard the edges</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:15px; line-height:1.55;">
+          Refuse duplicates, handle "remove someone not on the list" gracefully, and ignore stray spaces/case on input.
+        </p>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:4;">
+      <b>How to submit.</b> Create <code style="font-family:var(--mono);color:var(--yellow);">students/&lt;your-username&gt;/D18_rollcall.py</code>. Full brief in <code style="font-family:var(--mono);color:var(--cyan);">lab/module_2_practice/D18_rollcall/problem.md</code>. PR before 12:00.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 11 · RECAP ═══════ -->
+  <section class="slide" style="justify-content:center; padding:64px 80px;">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; End of Day 18</div>
+    <h2 class="r h-title" style="--d:1; font-size:54px; margin-top:8px;">What you can now do</h2>
+
+    <ul style="list-style:none; padding:0; margin-top:36px; max-width:80ch;">
+      <li class="r" style="--d:2; padding:12px 0; font-size:20px; color:var(--text); border-bottom:1px solid var(--border);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        Grow and shrink lists with <code style="font-family:var(--mono);color:var(--yellow);">.append()</code>, <code style="font-family:var(--mono);color:var(--yellow);">.remove()</code>, <code style="font-family:var(--mono);color:var(--yellow);">.pop()</code>.
+      </li>
+      <li class="r" style="--d:3; padding:12px 0; font-size:20px; color:var(--text); border-bottom:1px solid var(--border);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        Search with <code style="font-family:var(--mono);color:var(--cyan);">in</code>, <code style="font-family:var(--mono);color:var(--yellow);">.index()</code>, <code style="font-family:var(--mono);color:var(--yellow);">.count()</code> and order with sort/sorted.
+      </li>
+      <li class="r" style="--d:4; padding:12px 0; font-size:20px; color:var(--text);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        Remember lists are mutable — methods change them in place.
+      </li>
+    </ul>
+
+    <div class="r footer" style="--d:5; display:flex; align-items:center; gap:14px; font-size:15px; color:var(--muted);">
+      <span class="pill">UP NEXT</span>
+      <span>Combine day — <code style="font-family:var(--mono);color:var(--text);">text + lists together</code> to build a deduplicator on <b style="color:var(--text-br);">Day 19</b>.</span>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<div class="hud">
+  <button id="prev" title="Previous (←)">&#x2039;</button>
+  <span class="count"><b id="cur">01</b> / <span id="total">11</span></span>
+  <button id="next" title="Next (→)">&#x203A;</button>
+  <span class="sep"></span>
+  <button id="fs" title="Fullscreen (F)">⛶</button>
+</div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen &nbsp; <b>Ctrl/⌘+P</b> save as PDF</div>
+
+<script>
+/* ───────── navigation ───────── */
+const slides = [...document.querySelectorAll(".slide")];
+const total  = slides.length;
+let cur = 0;
+document.getElementById("total").textContent = String(total).padStart(2,"0");
+
+function show(i){
+  cur = Math.max(0, Math.min(total-1, i));
+  slides.forEach((s,n) => s.classList.toggle("active", n===cur));
+  document.getElementById("cur").textContent = String(cur+1).padStart(2,"0");
+  document.getElementById("progress").style.width = ((cur+1)/total*100)+"%";
+  location.hash = cur+1;
+}
+const next = () => show(cur+1);
+const prev = () => show(cur-1);
+
+document.addEventListener("keydown", e => {
+  if (["ArrowRight"," ","PageDown","Enter"].includes(e.key)) { e.preventDefault(); next(); }
+  else if (["ArrowLeft","PageUp","Backspace"].includes(e.key)) { e.preventDefault(); prev(); }
+  else if (e.key === "Home") show(0);
+  else if (e.key === "End")  show(total-1);
+  else if (e.key.toLowerCase() === "f") toggleFs();
+});
+document.getElementById("next").onclick = next;
+document.getElementById("prev").onclick = prev;
+document.getElementById("fs").onclick   = toggleFs;
+
+function toggleFs(){
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* ───────── fit stage to viewport ───────── */
+const scaler = document.getElementById("scaler");
+function fit(){
+  const sc = Math.min(window.innerWidth/1280, window.innerHeight/720);
+  scaler.style.transform = `scale(${sc})`;
+}
+window.addEventListener("resize", fit);
+fit();
+
+/* fade the keyboard hint after a few seconds */
+setTimeout(() => document.querySelector(".hint")?.classList.add("gone"), 6000);
+
+/* deep-link via hash (also handles browser back/forward) */
+window.addEventListener("hashchange", () => {
+  const n = parseInt(location.hash.replace("#","")) || 1;
+  if (n-1 !== cur) show(n-1);
+});
+const start = parseInt(location.hash.replace("#","")) || 1;
+show(start-1);
+</script>
+</body>
+</html>

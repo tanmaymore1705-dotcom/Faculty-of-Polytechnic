@@ -1,12 +1,12 @@
 #problem no 16
-num=10
-unum=int(input ("gives a num bet 1to 10:"))
+num = 10
+unum = int(input("Give a number between 1 to 10: "))
+
 if unum < num:
-       print ("to low")
+    print("Too low")
 
 elif unum > num:
-         print ("to high")
+    print("Too high")
 
 else:
-        (" correct ")
-    
+    print("Correct")

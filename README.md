@@ -80,30 +80,6 @@ Recognising students who go above and beyond — clean code, sharp problem-solvi
 helping classmates, and tackling the optional ★ stretch problems. Faculty adds
 names here as the course runs.
 
-### ⭐ Stretch Award
+[Tanuja Karpe](students/tanuja-karpe)
 
-Completed **10+ ★ stretch problems** across the course.
-
-| Student | Stretch problems | Notes |
-|---------|-----------------|-------|
-| Tanuja Karpe    | _—_ | _—_ |
-| Ayushka Mutadik | _—_ | _—_ |
-
-### 🥇 Standout Mini-Projects
-
-Exceptional Friday mini-projects (D5, D10, D15, D20, D25) or capstone work.
-
-| Student | Project | Why it stood out |
-|---------|---------|------------------|
-| _—_     | _—_     | _—_              |
-
-### 🤝 Peer Helpers
-
-Students who consistently helped classmates debug and learn.
-
-| Student | Notes |
-|---------|-------|
-| _—_     | _—_   |
-
-> Faculty: replace the `_—_` placeholder rows as you recognise students. Link a
-> student's name to their folder, e.g. `[Shreya Deshmukh](students/shreya-deshmukh/)`.
+[Ayushka Mutadik](students/aayushka-mutdak/)
