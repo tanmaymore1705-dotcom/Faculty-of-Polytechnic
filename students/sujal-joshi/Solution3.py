@@ -1,10 +1,8 @@
 #problem1
-def greet():
-    name = input("Sujal")
-    age = int(input("29"))
-    
-    print(f"Hi {name}! Next year you will be {age + 1}.")
-
+def greet(): 
+    n=input("enter your name:")
+    a=int(input("enter your age:"))
+    print("Hi",n + "!Next year you will be",a+1)
 greet()
 
 #problem2
