@@ -1,4 +1,4 @@
-3problem no 1
+#problem no 1
 def countdown(n):
     while n > 0:
         print(n)
@@ -8,7 +8,7 @@ def countdown(n):
 n = int(input("Enter how many sceonds till lift off: "))
 countdown(n)
 
-#problem no 1
+#problem no 2
 def print_triangle(height):
      for row in range(1, height + 1):
         for star in range(row):
