@@ -10,9 +10,7 @@ countdown(n)
 
 #problem no 2
 def print_triangle(height):
-     for row in range(1, height + 1):
-        for star in range(row):
-            print("*", end=" ")
-        print()
+    for row in range(1, height + 1):
+        print("*" * row)
 height=int(input("enter height:"))
 print_triangle(height)

@@ -5,11 +5,11 @@ def about_me():
     city = input("Which city are you from? :-")
     language = input("Favourite programming language? :-")
     years = int(input("How many years have you been coding? :-"))
-    print("---------------------------------")
-    
-    print("--->>       ABOUT ME         <<---")
-    
-    print("---------------------------------")
+    print("=" * 40)
+
+    print("              ABOUT ME")
+
+    print("=" * 40)
     
     print(f"Name:      {name}")
     print(f"Age:       {age}")
