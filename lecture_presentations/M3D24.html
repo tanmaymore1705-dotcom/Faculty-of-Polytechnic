@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module 3 · Day 24 — Building the Chain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{ --bg:#0A0A0F; --surface:#111122; --card:#15152A; --border:#262640; --border-br:#353556; --text:#E2E8F0; --text-br:#F1F5F9; --muted:#94A3B8; --dim:#64748B; --faint:#475569; --cyan:#00D4FF; --yellow:#FFD43B; --green:#34D399; --red:#F87171; --purple:#A78BFA; --orange:#F59E0B; --pink:#E6007A; --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'IBM Plex Sans',system-ui,sans-serif; --disp:'Space Grotesk','IBM Plex Sans',sans-serif; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0} html,body{height:100%}
+  body{ background:#050507; color:var(--text); font-family:var(--sans); overflow:hidden; display:grid; place-items:center; -webkit-font-smoothing:antialiased; }
+  .scaler{ transform-origin:center center; }
+  .stage{ width:1280px; height:720px; position:relative; background:var(--bg); overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,.6); border-radius:10px; }
+  .slide{ position:absolute; inset:0; padding:56px 64px 48px; display:flex; flex-direction:column; opacity:0; visibility:hidden; transition:opacity .35s ease; }
+  .slide.active{ opacity:1; visibility:visible; }
+  .slide.active .r{ animation:rise .5s cubic-bezier(.2,.7,.2,1) both; animation-delay:calc(var(--d,0) * 55ms); }
+  @keyframes rise{ from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+  .eyebrow{ font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--orange); }
+  .h-title{ font-family:var(--disp); font-weight:700; color:var(--text-br); line-height:1.08; }
+  .lede{ font-size:17px; color:var(--muted); line-height:1.55; max-width:62ch; }
+  .body-text{ font-size:18px; color:var(--text); line-height:1.55; max-width:64ch; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:10px; }
+  .card.accent{ border-color:var(--orange); background:rgba(245,158,11,.05); }
+  .code{ background:#0c0c14; border:1px solid var(--border); border-radius:9px; overflow:hidden; display:flex; flex-direction:column; min-height:0; }
+  .cbar{ display:flex; align-items:center; gap:7px; padding:9px 13px; border-bottom:1px solid var(--border); flex:0 0 auto; }
+  .cd{ width:9px; height:9px; border-radius:50%; background:#5C5C7A; }
+  .cf{ margin-left:8px; font-family:var(--mono); font-size:11.5px; color:var(--dim); }
+  .cpre{ margin:0; padding:14px 16px; overflow:auto; flex:1 1 auto; }
+  .cpre code{ font-family:var(--mono); font-size:15px; line-height:1.62; color:var(--text); white-space:pre; display:block; }
+  .kw{ color:var(--cyan); } .bif{ color:var(--yellow); } .num{ color:#FFA657; } .str{ color:var(--green); } .com{ color:var(--dim); font-style:italic; }
+  .progress{ position:fixed; top:0; left:0; height:3px; background:var(--orange); width:0; z-index:50; transition:width .35s ease; box-shadow:0 0 10px var(--orange); }
+  .hud{ position:fixed; bottom:18px; right:20px; z-index:50; display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:13px; color:var(--dim); background:rgba(17,17,34,.72); backdrop-filter:blur(8px); border:1px solid var(--border); border-radius:999px; padding:7px 14px; opacity:.5; transition:opacity .25s; }
+  .hud:hover{ opacity:1; }
+  .hud button{ all:unset; cursor:pointer; color:var(--muted); line-height:0; padding:3px 6px; border-radius:6px; transition:color .15s,background .15s; font-size:16px; }
+  .hud button:hover{ color:var(--orange); background:rgba(245,158,11,.1); }
+  .hud .count b{ color:var(--orange); }
+  .hud .sep{ width:1px; height:16px; background:var(--border); }
+  .hint{ position:fixed; bottom:18px; left:20px; z-index:50; font-family:var(--mono); font-size:11px; color:var(--faint); opacity:.7; transition:opacity .6s; }
+  .hint.gone{ opacity:0; }
+  .day-tag{ position:absolute; top:58px; right:72px; font-family:var(--mono); font-size:14px; color:var(--dim); letter-spacing:.18em; }
+  .footer{ margin-top:auto; }
+  .callout{ border-left:3px solid var(--orange); background:rgba(245,158,11,.06); padding:14px 18px; border-radius:6px; color:var(--text); font-size:15px; line-height:1.55; }
+  .callout b{ color:var(--orange); }
+  .pill{ display:inline-block; font-family:var(--mono); font-size:12px; background:rgba(245,158,11,.13); color:var(--orange); padding:3px 9px; border-radius:999px; letter-spacing:.06em; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
+  .num-list{ list-style:none; counter-reset:s; padding:0; }
+  .num-list li{ counter-increment:s; padding:10px 0 10px 46px; position:relative; font-size:17px; color:var(--text); line-height:1.55; border-bottom:1px solid var(--border); }
+  .num-list li:last-child{ border-bottom:none; }
+  .num-list li::before{ content:counter(s,decimal-leading-zero); position:absolute; left:0; top:10px; font-family:var(--mono); font-size:14px; color:var(--orange); font-weight:600; }
+  @media print{ @page{size:1280px 720px;margin:0} body{display:block;overflow:visible} .scaler{transform:none!important} .stage{box-shadow:none;border-radius:0} .slide{position:relative;opacity:1!important;visibility:visible!important;page-break-after:always} .slide .r{animation:none!important} .hud,.hint,.progress{display:none!important} }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="scaler" id="scaler">
+<div class="stage" id="stage">
+
+<!-- SLIDE 1: Title -->
+<div class="slide active" style="justify-content:center; background: radial-gradient(ellipse at 70% 40%, rgba(245,158,11,.07) 0%, transparent 65%), linear-gradient(225deg, rgba(245,158,11,.03) 0%, transparent 50%);">
+  <div class="day-tag r" style="--d:0">DAY 24 / 40</div>
+  <div class="r" style="--d:1; margin-bottom:14px;"><span class="eyebrow">&gt;&gt; Module 03 / Day 24 / Lecture</span></div>
+  <div class="r" style="--d:2; margin-bottom:16px;">
+    <h1 class="h-title" style="font-size:72px;">Building the Chain</h1>
+  </div>
+  <div class="r" style="--d:3; margin-bottom:20px;">
+    <p style="font-size:38px; color:var(--orange); font-style:italic; font-family:var(--disp); font-weight:500;">Linking blocks — and breaking them</p>
+  </div>
+  <div class="r" style="--d:4; margin-bottom:40px;">
+    <p style="font-size:18px; color:var(--muted); line-height:1.55; max-width:60ch;">We have a block. Today we chain them together — and then deliberately tamper with one to see the chain shatter.</p>
+  </div>
+  <div class="r" style="--d:5; display:flex; gap:16px; flex-wrap:wrap;">
+    <div class="card" style="padding:12px 20px; display:flex; flex-direction:column; gap:4px;">
+      <span style="font-family:var(--mono); font-size:11px; color:var(--orange); letter-spacing:.15em; text-transform:uppercase;">Lecture</span>
+      <span style="font-size:14px; color:var(--text);">75 min</span>
+    </div>
+    <div class="card" style="padding:12px 20px; display:flex; flex-direction:column; gap:4px;">
+      <span style="font-family:var(--mono); font-size:11px; color:var(--orange); letter-spacing:.15em; text-transform:uppercase;">Lab</span>
+      <span style="font-size:14px; color:var(--text);">60 min &nbsp;·&nbsp; Build a 3-block chain</span>
+    </div>
+    <div class="card" style="padding:12px 20px; display:flex; flex-direction:column; gap:4px;">
+      <span style="font-family:var(--mono); font-size:11px; color:var(--orange); letter-spacing:.15em; text-transform:uppercase;">Module</span>
+      <span style="font-size:14px; color:var(--text);">M3 &nbsp;·&nbsp; Blockchain Basics</span>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 2: Agenda -->
+<div class="slide">
+  <div class="r" style="--d:0; margin-bottom:8px;"><span class="eyebrow">&gt;&gt; Today's roadmap</span></div>
+  <div class="r" style="--d:1; margin-bottom:28px;">
+    <h2 class="h-title" style="font-size:44px;">From block to blockchain</h2>
+  </div>
+  <div class="r" style="--d:2; flex:1; min-height:0;">
+    <ul class="num-list">
+      <li>Review: block structure recap</li>
+      <li>The linking rule: <span style="font-family:var(--mono); color:var(--yellow);">previous_hash</span></li>
+      <li><span style="font-family:var(--mono); color:var(--yellow);">build_chain()</span> — a list of linked blocks</li>
+      <li>Tamper demo — change one block, watch the chain break</li>
+      <li>Lab — build a 3-block chain manually</li>
+    </ul>
+  </div>
+  <div class="r footer" style="--d:3; padding-top:20px;">
+    <span class="pill">HANDS-ON</span>
+    <span style="font-size:14px; color:var(--muted); margin-left:12px;">You will build, then deliberately break, your first blockchain.</span>
+  </div>
+</div>
+
+<!-- SLIDE 3: The linking rule -->
+<div class="slide">
+  <div class="r" style="--d:0; margin-bottom:8px;"><span class="eyebrow">&gt;&gt; 01 / 03 · The key rule</span></div>
+  <div class="r" style="--d:1; margin-bottom:10px;">
+    <h2 class="h-title" style="font-size:40px;">Each block remembers the one before it</h2>
+  </div>
+  <div class="r" style="--d:2; margin-bottom:22px;">
+    <p class="lede">Every block stores the hash of the block before it in a field called <span style="font-family:var(--mono); color:var(--yellow);">previous_hash</span>. This single rule creates the unbreakable link.</p>
+  </div>
+  <!-- Visual chain diagram -->
+  <div class="r" style="--d:3; display:flex; align-items:center; gap:0; flex:1; min-height:0; max-height:180px;">
+    <div class="card" style="padding:16px 18px; flex:1;">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.12em; text-transform:uppercase; margin-bottom:8px;">Block 0</div>
+      <div style="font-family:var(--mono); font-size:13px; line-height:1.7; color:var(--text);">index: <span style="color:var(--num)">0</span><br>hash: <span style="color:var(--green)">a3f7...</span><br>prev: <span style="color:var(--dim)">0000...</span></div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:center; padding:0 12px; flex-shrink:0;">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--orange); white-space:nowrap; transform:rotate(0deg);">&#x2190; points to &#x2190;</div>
+    </div>
+    <div class="card accent" style="padding:16px 18px; flex:1;">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--orange); letter-spacing:.12em; text-transform:uppercase; margin-bottom:8px;">Block 1</div>
+      <div style="font-family:var(--mono); font-size:13px; line-height:1.7; color:var(--text);">index: <span style="color:#FFA657">1</span><br>hash: <span style="color:var(--green)">9c82...</span><br>prev: <span style="color:var(--orange)">a3f7...</span></div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:center; padding:0 12px; flex-shrink:0;">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--orange); white-space:nowrap;">&#x2190; points to &#x2190;</div>
+    </div>
+    <div class="card" style="padding:16px 18px; flex:1;">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.12em; text-transform:uppercase; margin-bottom:8px;">Block 2</div>
+      <div style="font-family:var(--mono); font-size:13px; line-height:1.7; color:var(--text);">index: <span style="color:#FFA657">2</span><br>hash: <span style="color:var(--green)">ef79...</span><br>prev: <span style="color:var(--orange)">9c82...</span></div>
+    </div>
+  </div>
+  <div class="r footer" style="--d:4; padding-top:18px;">
+    <div class="callout"><b>The chain is this arrow.</b> Block 1's previous_hash matches Block 0's hash exactly. If Block 0 changes, its hash changes, and Block 1's previous_hash no longer matches — the chain breaks.</div>
+  </div>
+</div>
+
+<!-- SLIDE 4: build_chain() -->
+<div class="slide">
+  <div class="r" style="--d:0; margin-bottom:8px;"><span class="eyebrow">&gt;&gt; 02 / 03 · The code</span></div>
+  <div class="r" style="--d:1; margin-bottom:16px;">
+    <h2 class="h-title" style="font-size:40px;">Building the chain in Python</h2>
+  </div>
+  <div class="r code" style="--d:2; flex:1; min-height:0;">
+    <div class="cbar"><div class="cd"></div><div class="cd"></div><div class="cd"></div><span class="cf">chain.py</span></div>
+    <div class="cpre"><code><span class="kw">def</span> <span class="bif">build_chain</span>():
+    chain = []
+
+    <span class="com"># Block 0 — genesis</span>
+    genesis = <span class="bif">make_block</span>(<span class="num">0</span>, <span class="str">"Genesis Block"</span>, <span class="str">"0"</span> * <span class="num">64</span>)
+    chain.<span class="bif">append</span>(genesis)
+
+    <span class="com"># Block 1 — points to genesis</span>
+    block1 = <span class="bif">make_block</span>(<span class="num">1</span>, <span class="str">"Alice sends 10 DOT to Bob"</span>,
+                        previous_hash=chain[<span class="num">-1</span>][<span class="str">"hash"</span>])
+    chain.<span class="bif">append</span>(block1)
+
+    <span class="com"># Block 2 — points to block 1</span>
+    block2 = <span class="bif">make_block</span>(<span class="num">2</span>, <span class="str">"Bob sends 4 DOT to Carol"</span>,
+                        previous_hash=chain[<span class="num">-1</span>][<span class="str">"hash"</span>])
+    chain.<span class="bif">append</span>(block2)
+
+    <span class="kw">return</span> chain
+
+chain = <span class="bif">build_chain</span>()
+<span class="kw">for</span> b <span class="kw">in</span> chain:
+    <span class="bif">print</span>(b[<span class="str">"index"</span>], b[<span class="str">"hash"</span>][:<span class="num">12</span>], b[<span class="str">"previous_hash"</span>][:<span class="num">12</span>])</code></div>
+  </div>
+  <div class="r footer" style="--d:3; padding-top:14px;">
+    <span class="pill">CHAIN[-1]["HASH"]</span>
+    <span style="font-size:14px; color:var(--muted); margin-left:12px;">Always pass the previous block's hash as previous_hash. <span style="font-family:var(--mono); color:var(--yellow);">chain[-1]</span> is the last block in the list.</span>
+  </div>
+</div>
+
+<!-- SLIDE 5: Tamper demo -->
+<div class="slide">
+  <div class="r" style="--d:0; margin-bottom:8px;"><span class="eyebrow">&gt;&gt; 03 / 03 · The tamper test</span></div>
+  <div class="r" style="--d:1; margin-bottom:16px;">
+    <h2 class="h-title" style="font-size:40px;">What happens if we cheat?</h2>
+  </div>
+  <div class="r code" style="--d:2; flex:1; min-height:0;">
+    <div class="cbar"><div class="cd"></div><div class="cd"></div><div class="cd"></div><span class="cf">tamper.py</span></div>
+    <div class="cpre"><code>chain = <span class="bif">build_chain</span>()
+
+<span class="com"># Secretly change Block 1's data</span>
+chain[<span class="num">1</span>][<span class="str">"data"</span>] = <span class="str">"Alice sends 1000 DOT to Bob"</span>   <span class="com"># TAMPER!</span>
+
+<span class="com"># Now check: does Block 1's hash still match?</span>
+<span class="bif">print</span>(<span class="str">"Block 1 hash (stored) :"</span>, chain[<span class="num">1</span>][<span class="str">"hash"</span>][:<span class="num">20</span>])
+<span class="bif">print</span>(<span class="str">"Block 1 hash (recalc) :"</span>, <span class="bif">hash_block</span>(chain[<span class="num">1</span>])[:<span class="num">20</span>])
+<span class="com"># These two are different! Block 1 has been tampered with.</span>
+
+<span class="com"># And Block 2's link is now broken too:</span>
+<span class="bif">print</span>(<span class="str">"Block 2 expects prev  :"</span>, chain[<span class="num">2</span>][<span class="str">"previous_hash"</span>][:<span class="num">20</span>])
+<span class="bif">print</span>(<span class="str">"Block 1 hash now is   :"</span>, chain[<span class="num">1</span>][<span class="str">"hash"</span>][:<span class="num">20</span>])
+<span class="com"># Also different — the chain is invalid.</span></code></div>
+  </div>
+  <div class="r footer" style="--d:3; padding-top:14px;">
+    <div class="callout"><b>This is the immutability guarantee.</b> Changing any block breaks it AND every block that follows. You'd have to recalculate every subsequent hash — which is where Proof of Work (D26) makes that prohibitively expensive.</div>
+  </div>
+</div>
+
+<!-- SLIDE 6: Polkadot connection -->
+<div class="slide">
+  <div class="r" style="--d:0; margin-bottom:8px;"><span class="eyebrow">&gt;&gt; Real world anchor</span></div>
+  <div class="r" style="--d:1; margin-bottom:20px;">
+    <h2 class="h-title" style="font-size:40px;">This is exactly how Polkadot works</h2>
+  </div>
+  <div class="r grid-2" style="--d:2; min-height:0; height:230px;">
+    <div class="card" style="padding:22px 24px;">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.15em; text-transform:uppercase; margin-bottom:12px;">POLKADOT RELAY CHAIN</div>
+      <p style="font-size:14px; color:var(--muted); line-height:1.65;">Every Polkadot block contains the hash of its parent block in the <span style="font-family:var(--mono); color:var(--yellow);">parent_hash</span> field. This is visible on every block on Subscan. The chain of 22+ million blocks all link back to block 0.</p>
+    </div>
+    <div class="card accent" style="padding:22px 24px;">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--orange); letter-spacing:.15em; text-transform:uppercase; margin-bottom:12px;">VALIDATORS</div>
+      <p style="font-size:14px; color:var(--muted); line-height:1.65;">In Polkadot, validators don't just trust the previous hash — they run complex state transition checks. But the core principle is the same: verify the link, detect any tampering.</p>
+    </div>
+  </div>
+  <div class="r" style="--d:3; margin-top:20px;">
+    <p class="lede">Go to <span style="font-family:var(--mono); color:var(--cyan);">subscan.io</span> right now &#x2192; click any block &#x2192; look at the <strong style="color:var(--text-br);">"Parent Hash"</strong> field. That value matches the "Hash" of the block numbered one less. Same chain, production scale.</p>
+  </div>
+</div>
+
+<!-- SLIDE 7: add_block helper -->
+<div class="slide">
+  <div class="r" style="--d:0; margin-bottom:8px;"><span class="eyebrow">&gt;&gt; Clean code</span></div>
+  <div class="r" style="--d:1; margin-bottom:16px;">
+    <h2 class="h-title" style="font-size:38px;">A cleaner way — add_block()</h2>
+  </div>
+  <div class="r code" style="--d:2; flex:1; min-height:0;">
+    <div class="cbar"><div class="cd"></div><div class="cd"></div><div class="cd"></div><span class="cf">add_block.py</span></div>
+    <div class="cpre"><code><span class="kw">def</span> <span class="bif">add_block</span>(chain, data):
+    previous_hash = chain[<span class="num">-1</span>][<span class="str">"hash"</span>]
+    index         = <span class="bif">len</span>(chain)
+    new_block     = <span class="bif">make_block</span>(index, data, previous_hash)
+    chain.<span class="bif">append</span>(new_block)
+    <span class="kw">return</span> new_block
+
+<span class="com"># Usage:</span>
+chain = [<span class="bif">make_block</span>(<span class="num">0</span>, <span class="str">"Genesis Block"</span>, <span class="str">"0"</span> * <span class="num">64</span>)]
+<span class="bif">add_block</span>(chain, <span class="str">"Alice &#x2192; Bob: 10 DOT"</span>)
+<span class="bif">add_block</span>(chain, <span class="str">"Bob &#x2192; Carol: 4 DOT"</span>)
+<span class="bif">add_block</span>(chain, <span class="str">"Carol &#x2192; Alice: 2 DOT"</span>)
+<span class="bif">print</span>(<span class="bif">f</span><span class="str">"Chain length: {<span class="bif">len</span>(chain)} blocks"</span>)</code></div>
+  </div>
+  <div class="r footer" style="--d:3; padding-top:14px;">
+    <span class="pill">REUSABLE</span>
+    <span style="font-size:14px; color:var(--muted); margin-left:12px;"><span style="font-family:var(--mono); color:var(--yellow);">add_block()</span> handles the index and previous_hash automatically. You only need to pass in the data.</span>
+  </div>
+</div>
+
+<!-- SLIDE 8: Lab Preview -->
+<div class="slide">
+  <div class="r" style="--d:0; margin-bottom:8px;"><span class="eyebrow">&gt;&gt; 11:00 – 12:00 · Lab</span></div>
+  <div class="r" style="--d:1; margin-bottom:24px;">
+    <h2 class="h-title" style="font-size:42px;">Today's lab — Build a 3-Block Chain</h2>
+  </div>
+  <div class="r grid-2" style="--d:2; flex:1; min-height:0;">
+    <div class="card" style="padding:22px 24px;">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.15em; text-transform:uppercase; margin-bottom:12px;">CORE</div>
+      <p style="font-size:16px; font-weight:600; color:var(--text-br); margin-bottom:10px;">Linked chain</p>
+      <p style="font-size:14px; color:var(--muted); line-height:1.6;">Write <span style="font-family:var(--mono); color:var(--yellow);">add_block()</span> and use it to build a chain of at least 3 blocks (genesis + 2 transactions). Print the index, hash (first 16 chars), and previous_hash (first 16 chars) of each block.</p>
+    </div>
+    <div class="card accent" style="padding:22px 24px;">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--orange); letter-spacing:.15em; text-transform:uppercase; margin-bottom:12px;">STRETCH &#x2605;</div>
+      <p style="font-size:16px; font-weight:600; color:var(--text-br); margin-bottom:10px;">Tamper and detect</p>
+      <p style="font-size:14px; color:var(--muted); line-height:1.6;">After building the chain, manually change the data in block 1. Print the stored hash vs the recalculated hash and show they differ. Extra: add an <span style="font-family:var(--mono); color:var(--yellow);">is_tampered(block)</span> function.</p>
+    </div>
+  </div>
+  <div class="r footer" style="--d:3; padding-top:16px;">
+    <div class="callout"><b>How to submit.</b> Create <span style="font-family:var(--mono); color:var(--yellow);">students/&lt;username&gt;/D24_chain.py</span>. Full brief in <span style="font-family:var(--mono); color:var(--yellow);">lab/module_3_blockchain/D24_chain/problem.md</span>. PR before 12:00.</div>
+  </div>
+</div>
+
+<!-- SLIDE 9: Recap -->
+<div class="slide" style="justify-content:center; padding:64px 80px;">
+  <div class="r" style="--d:0; margin-bottom:12px;"><span class="eyebrow">&gt;&gt; End of Day 24</span></div>
+  <div class="r" style="--d:1; margin-bottom:32px;">
+    <h2 class="h-title" style="font-size:52px;">The chain is alive</h2>
+  </div>
+  <div class="r" style="--d:2; flex:1; max-width:800px;">
+    <div style="border-bottom:1px solid var(--border); padding:16px 0; font-size:20px; color:var(--text); display:flex; gap:14px; align-items:baseline;">
+      <span style="color:var(--green); font-weight:600;">&#x2713;</span>
+      <span>Blocks link via <span style="font-family:var(--mono); color:var(--yellow);">previous_hash</span> — each block stores the hash of the one before it.</span>
+    </div>
+    <div style="border-bottom:1px solid var(--border); padding:16px 0; font-size:20px; color:var(--text); display:flex; gap:14px; align-items:baseline;">
+      <span style="color:var(--green); font-weight:600;">&#x2713;</span>
+      <span><span style="font-family:var(--mono); color:var(--yellow);">add_block()</span> makes it easy to grow the chain one block at a time.</span>
+    </div>
+    <div style="padding:16px 0; font-size:20px; color:var(--text); display:flex; gap:14px; align-items:baseline;">
+      <span style="color:var(--green); font-weight:600;">&#x2713;</span>
+      <span>Tampering breaks the chain — stored hash no longer matches the recalculated hash.</span>
+    </div>
+  </div>
+  <div class="r footer" style="--d:3; padding-top:24px;">
+    <span class="pill">UP NEXT</span>
+    <span style="font-size:14px; color:var(--muted); margin-left:12px;">Day 25: we write <span style="font-family:var(--mono); color:var(--yellow);">is_valid_chain()</span> — a formal validator that checks every link in the chain.</span>
+  </div>
+</div>
+
+</div><!-- /stage -->
+</div><!-- /scaler -->
+<div class="hud">
+  <button id="prev">&#x2039;</button>
+  <span class="count"><b id="cur">01</b> / <span id="total">9</span></span>
+  <button id="next">&#x203A;</button>
+  <span class="sep"></span>
+  <button id="fs">&#x26F6;</button>
+</div>
+<div class="hint"><b>&#x2190;/&#x2192;</b> navigate &nbsp; <b>F</b> fullscreen</div>
+<script>
+const slides=[...document.querySelectorAll(".slide")];const total=slides.length;let cur=0;document.getElementById("total").textContent=String(total).padStart(2,"0");function show(i){cur=Math.max(0,Math.min(total-1,i));slides.forEach((s,n)=>s.classList.toggle("active",n===cur));document.getElementById("cur").textContent=String(cur+1).padStart(2,"0");document.getElementById("progress").style.width=((cur+1)/total*100)+"%";location.hash=cur+1;}const next=()=>show(cur+1);const prev=()=>show(cur-1);document.addEventListener("keydown",e=>{if(["ArrowRight"," ","PageDown","Enter"].includes(e.key)){e.preventDefault();next();}else if(["ArrowLeft","PageUp","Backspace"].includes(e.key)){e.preventDefault();prev();}else if(e.key==="Home")show(0);else if(e.key==="End")show(total-1);else if(e.key.toLowerCase()==="f")toggleFs();});document.getElementById("next").onclick=next;document.getElementById("prev").onclick=prev;document.getElementById("fs").onclick=toggleFs;function toggleFs(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}const scaler=document.getElementById("scaler");function fit(){const sc=Math.min(window.innerWidth/1280,window.innerHeight/720);scaler.style.transform=`scale(${sc})`;}window.addEventListener("resize",fit);fit();setTimeout(()=>document.querySelector(".hint")?.classList.add("gone"),6000);window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.replace("#",""))||1;if(n-1!==cur)show(n-1);});show((parseInt(location.hash.replace("#",""))||1)-1);
+</script>
+</body>
+</html>

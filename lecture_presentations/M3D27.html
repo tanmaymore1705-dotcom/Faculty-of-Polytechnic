@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module 3 · Day 27 — Proof of Stake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0A0A0F;--surface:#111122;--card:#15152A;--border:#262640;--border-br:#353556;--text:#E2E8F0;--text-br:#F1F5F9;--muted:#94A3B8;--dim:#64748B;--faint:#475569;--cyan:#00D4FF;--yellow:#FFD43B;--green:#34D399;--red:#F87171;--purple:#A78BFA;--orange:#F59E0B;--mono:'IBM Plex Mono',ui-monospace,monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;--disp:'Space Grotesk','IBM Plex Sans',sans-serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
+  body{background:#050507;color:var(--text);font-family:var(--sans);overflow:hidden;display:grid;place-items:center;-webkit-font-smoothing:antialiased;}
+  .scaler{transform-origin:center center;}
+  .stage{width:1280px;height:720px;position:relative;background:var(--bg);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);border-radius:10px;}
+  .slide{position:absolute;inset:0;padding:56px 64px 48px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s ease;}
+  .slide.active{opacity:1;visibility:visible;}
+  .slide.active .r{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0)*55ms);}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .eyebrow{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);}
+  .h-title{font-family:var(--disp);font-weight:700;color:var(--text-br);line-height:1.08;}
+  .lede{font-size:17px;color:var(--muted);line-height:1.55;max-width:62ch;}
+  .body-text{font-size:18px;color:var(--text);line-height:1.55;max-width:64ch;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;}
+  .card.accent{border-color:var(--orange);background:rgba(245,158,11,.05);}
+  .code{background:#0c0c14;border:1px solid var(--border);border-radius:9px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+  .cbar{display:flex;align-items:center;gap:7px;padding:9px 13px;border-bottom:1px solid var(--border);flex:0 0 auto;}
+  .cd{width:9px;height:9px;border-radius:50%;background:#5C5C7A;}
+  .cf{margin-left:8px;font-family:var(--mono);font-size:11.5px;color:var(--dim);}
+  .cpre{margin:0;padding:14px 16px;overflow:auto;flex:1 1 auto;}
+  .cpre code{font-family:var(--mono);font-size:15px;line-height:1.62;color:var(--text);white-space:pre;display:block;}
+  .kw{color:var(--cyan);}.bif{color:var(--yellow);}.num{color:#FFA657;}.str{color:var(--green);}.com{color:var(--dim);font-style:italic;}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--orange);width:0;z-index:50;transition:width .35s ease;box-shadow:0 0 10px var(--orange);}
+  .hud{position:fixed;bottom:18px;right:20px;z-index:50;display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:13px;color:var(--dim);background:rgba(17,17,34,.72);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:999px;padding:7px 14px;opacity:.5;transition:opacity .25s;}
+  .hud:hover{opacity:1;}
+  .hud button{all:unset;cursor:pointer;color:var(--muted);line-height:0;padding:3px 6px;border-radius:6px;transition:color .15s,background .15s;font-size:16px;}
+  .hud button:hover{color:var(--orange);background:rgba(245,158,11,.1);}
+  .hud .count b{color:var(--orange);}
+  .hud .sep{width:1px;height:16px;background:var(--border);}
+  .hint{position:fixed;bottom:18px;left:20px;z-index:50;font-family:var(--mono);font-size:11px;color:var(--faint);opacity:.7;transition:opacity .6s;}
+  .hint.gone{opacity:0;}
+  .day-tag{position:absolute;top:58px;right:72px;font-family:var(--mono);font-size:14px;color:var(--dim);letter-spacing:.18em;}
+  .footer{margin-top:auto;}
+  .callout{border-left:3px solid var(--orange);background:rgba(245,158,11,.06);padding:14px 18px;border-radius:6px;color:var(--text);font-size:15px;line-height:1.55;}
+  .callout b{color:var(--orange);}
+  .pill{display:inline-block;font-family:var(--mono);font-size:12px;background:rgba(245,158,11,.13);color:var(--orange);padding:3px 9px;border-radius:999px;letter-spacing:.06em;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+  .num-list{list-style:none;counter-reset:s;padding:0;}
+  .num-list li{counter-increment:s;padding:10px 0 10px 46px;position:relative;font-size:17px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);}
+  .num-list li:last-child{border-bottom:none;}
+  .num-list li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:10px;font-family:var(--mono);font-size:14px;color:var(--orange);font-weight:600;}
+  @media print{@page{size:1280px 720px;margin:0}body{display:block;overflow:visible}.scaler{transform:none!important}.stage{box-shadow:none;border-radius:0}.slide{position:relative;opacity:1!important;visibility:visible!important;page-break-after:always}.slide .r{animation:none!important}.hud,.hint,.progress{display:none!important}}
+</style></head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="scaler" id="scaler"><div class="stage" id="stage">
+
+<!-- SLIDE 1: Title -->
+<div class="slide active" style="justify-content:center;background:radial-gradient(ellipse at 30% 50%,rgba(245,158,11,.07) 0%,transparent 65%),repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,.018) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,.018) 40px);">
+  <div class="day-tag">DAY 27 / 40</div>
+  <p class="eyebrow r" style="--d:0">&gt;&gt; Module 03 / Day 27 / Lecture</p>
+  <h1 class="h-title r" style="font-size:70px;margin-top:16px;--d:1">Proof of Stake</h1>
+  <p class="r" style="font-size:36px;font-style:italic;color:var(--orange);margin-top:10px;--d:2">Polkadot's energy-efficient consensus</p>
+  <p class="lede r" style="--d:3;margin-top:22px">Proof of Work burns electricity. Polkadot chose a different path — stake your tokens as collateral. Today we understand why, and simulate it in Python.</p>
+  <div class="r" style="--d:4;margin-top:32px;display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+    <span class="pill">Lecture 75 min</span>
+    <span style="color:var(--dim);font-size:14px">|</span>
+    <span class="pill">Lab 60 min · Simulate validator selection</span>
+    <span style="color:var(--dim);font-size:14px">|</span>
+    <span class="pill">M3 · Blockchain Basics</span>
+  </div>
+</div>
+
+<!-- SLIDE 2: Agenda -->
+<div class="slide">
+  <p class="eyebrow r" style="--d:0">&gt;&gt; Today's Roadmap</p>
+  <h2 class="h-title r" style="font-size:36px;margin-top:8px;--d:1">Six stops today</h2>
+  <ol class="num-list r" style="--d:2;margin-top:24px">
+    <li>PoW problems — what Proof of Work gets wrong</li>
+    <li>Proof of Stake — the core idea</li>
+    <li>Slashing — the punishment mechanism</li>
+    <li>NPoS — Polkadot's version</li>
+    <li>Python simulation — weighted_choice()</li>
+    <li>Lab — run 10 validator elections</li>
+  </ol>
+</div>
+
+<!-- SLIDE 3: PoW Problems -->
+<div class="slide">
+  <p class="eyebrow r" style="--d:0">&gt;&gt; 01 / 04 · The problem with PoW</p>
+  <h2 class="h-title r" style="font-size:40px;margin-top:8px;--d:1">Proof of Work has three big problems</h2>
+  <div class="grid-3 r" style="--d:2;margin-top:24px">
+    <div class="card" style="padding:22px">
+      <p style="font-family:var(--mono);font-size:13px;color:var(--orange);letter-spacing:.12em;margin-bottom:10px">ENERGY WASTE</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.55">Bitcoin uses as much electricity as Argentina. All that computation produces nothing useful — it just proves work was done.</p>
+    </div>
+    <div class="card accent" style="padding:22px">
+      <p style="font-family:var(--mono);font-size:13px;color:var(--orange);letter-spacing:.12em;margin-bottom:10px">HARDWARE ARMS RACE</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.55">Mining profitably requires specialised hardware (ASICs) worth thousands of dollars. Rich miners dominate; regular people can't compete.</p>
+    </div>
+    <div class="card" style="padding:22px">
+      <p style="font-family:var(--mono);font-size:13px;color:var(--orange);letter-spacing:.12em;margin-bottom:10px">SLOW FINALITY</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.55">After a PoW block is added, you still have to wait for 6+ more blocks before it's considered final. Banks need instant finality.</p>
+    </div>
+  </div>
+  <div class="callout r" style="--d:3;margin-top:20px"><b>Proof of Stake solves all three</b> — no wasted computation, no special hardware needed, and Polkadot achieves finality in seconds via GRANDPA.</div>
+</div>
+
+<!-- SLIDE 4: PoS Core Idea -->
+<div class="slide">
+  <p class="eyebrow r" style="--d:0">&gt;&gt; 02 / 04 · Proof of Stake</p>
+  <h2 class="h-title r" style="font-size:40px;margin-top:8px;--d:1">Instead of burning electricity, stake tokens</h2>
+  <p class="body-text r" style="--d:2;margin-top:16px">In Proof of Stake, validators are chosen based on how many tokens they lock up ("stake"). If they behave honestly, they earn rewards. If they cheat — they lose their stake. This economic threat replaces computational work.</p>
+  <div class="grid-2 r" style="--d:3;margin-top:22px">
+    <div class="card" style="padding:22px">
+      <p style="font-family:var(--mono);font-size:13px;color:var(--orange);letter-spacing:.12em;margin-bottom:10px">BECOMING A VALIDATOR</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.55">Lock up a minimum amount of tokens (called bonding). The protocol chooses you to create blocks based on your stake size. No specialised hardware needed.</p>
+    </div>
+    <div class="card accent" style="padding:22px">
+      <p style="font-family:var(--mono);font-size:13px;color:var(--orange);letter-spacing:.12em;margin-bottom:10px">THE PUNISHMENT (SLASHING)</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.55">Double-sign a block (produce two conflicting blocks)? Your stake gets slashed — cut by a percentage or entirely. Your reputation is destroyed. This is why validators behave honestly.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: NPoS -->
+<div class="slide">
+  <p class="eyebrow r" style="--d:0">&gt;&gt; 03 / 04 · Polkadot's twist</p>
+  <h2 class="h-title r" style="font-size:40px;margin-top:8px;--d:1">Nominated Proof of Stake (NPoS)</h2>
+  <p class="lede r" style="--d:2;margin-top:12px">Polkadot doesn't just let anyone stake solo. It uses a two-role system: Validators and Nominators.</p>
+  <div class="grid-2 r" style="--d:3;margin-top:20px">
+    <div class="card" style="padding:24px">
+      <p style="font-family:var(--mono);font-size:15px;color:var(--orange);letter-spacing:.1em;margin-bottom:12px">VALIDATORS</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.6">Run a node 24/7. Produce blocks and verify parachain proofs. Must stake a large amount of DOT. Currently ~300 active validators.</p>
+    </div>
+    <div class="card accent" style="padding:24px">
+      <p style="font-family:var(--mono);font-size:15px;color:var(--orange);letter-spacing:.1em;margin-bottom:12px">NOMINATORS</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.6">Regular DOT holders who back validators with their stake. They vote for validators they trust. They share rewards — and share slashing risk.</p>
+    </div>
+  </div>
+  <div class="callout r" style="--d:4;margin-top:20px"><b>The election algorithm</b> distributes stake evenly across validators to avoid power concentration. This is Polkadot's clever NPoS mechanism — designed for fairness.</div>
+</div>
+
+<!-- SLIDE 6: Python Simulation -->
+<div class="slide">
+  <p class="eyebrow r" style="--d:0">&gt;&gt; 04 / 04 · Python model</p>
+  <h2 class="h-title r" style="font-size:38px;margin-top:8px;--d:1">Simulating validator selection with Python</h2>
+  <div class="code r" style="--d:2;margin-top:20px;flex:1">
+    <div class="cbar"><div class="cd"></div><div class="cd"></div><div class="cd"></div><span class="cf">pos_sim.py</span></div>
+    <div class="cpre"><code><span class="kw">import</span> random
+
+<span class="com"># Validators and their stakes (in DOT)</span>
+validators = {
+    <span class="str">"Alice"</span>:   <span class="num">5000</span>,
+    <span class="str">"Bob"</span>:     <span class="num">3000</span>,
+    <span class="str">"Carol"</span>:   <span class="num">8000</span>,
+    <span class="str">"Dave"</span>:    <span class="num">2000</span>,
+    <span class="str">"Eve"</span>:     <span class="num">1000</span>,
+}
+
+<span class="kw">def</span> weighted_choice(validators):
+    total_stake = <span class="bif">sum</span>(validators.values())
+    r = random.uniform(<span class="num">0</span>, total_stake)
+    cumulative = <span class="num">0</span>
+    <span class="kw">for</span> name, stake <span class="kw">in</span> validators.items():
+        cumulative += stake
+        <span class="kw">if</span> r &lt;= cumulative:
+            <span class="kw">return</span> name
+
+<span class="com"># Run 10 elections:</span>
+<span class="kw">for</span> round_num <span class="kw">in</span> <span class="bif">range</span>(<span class="num">1</span>, <span class="num">11</span>):
+    winner = weighted_choice(validators)
+    <span class="bif">print</span>(<span class="str">f"Round <span class="kw">{</span>round_num<span class="kw">}</span>: <span class="kw">{</span>winner<span class="kw">}</span> produces the next block"</span>)</code></div>
+  </div>
+  <div class="callout r" style="--d:3;margin-top:14px"><b>Carol has 42% of the stake</b> (8000/19000), so she wins roughly 42% of elections. Bigger stake = more chances, but it's never guaranteed — and cheating loses it all.</div>
+</div>
+
+<!-- SLIDE 7: PoW vs PoS Comparison Table -->
+<div class="slide">
+  <p class="eyebrow r" style="--d:0">&gt;&gt; Side by side</p>
+  <h2 class="h-title r" style="font-size:38px;margin-top:8px;--d:1">PoW vs PoS — the key differences</h2>
+  <div class="r" style="--d:2;margin-top:24px;flex:1">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div style="background:rgba(245,158,11,.15);padding:12px 18px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--orange);letter-spacing:.1em">Feature</div>
+      <div style="background:rgba(245,158,11,.15);padding:12px 18px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--orange);letter-spacing:.1em">Proof of Work</div>
+      <div style="background:rgba(245,158,11,.15);padding:12px 18px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--orange);letter-spacing:.1em">Proof of Stake (NPoS)</div>
+
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border)">Energy</div>
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border)">Enormous (Bitcoin = Argentina)</div>
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border)">Minimal — no mining</div>
+
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border);background:rgba(255,255,255,.015)">Hardware</div>
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border);background:rgba(255,255,255,.015)">Specialised ASICs required</div>
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border);background:rgba(255,255,255,.015)">Any modern computer</div>
+
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border)">Attack cost</div>
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border)">51% of hashrate</div>
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border)">51% of total stake</div>
+
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border);background:rgba(255,255,255,.015)">Used by</div>
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border);background:rgba(255,255,255,.015)">Bitcoin</div>
+      <div style="padding:14px 18px;font-size:15px;color:var(--text);border-top:1px solid var(--border);background:rgba(255,255,255,.015)">Polkadot, Ethereum 2.0, Cardano</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8: Slashing Deep Dive -->
+<div class="slide">
+  <p class="eyebrow r" style="--d:0">&gt;&gt; The deterrent</p>
+  <h2 class="h-title r" style="font-size:40px;margin-top:8px;--d:1">Slashing — losing your stake for cheating</h2>
+  <p class="lede r" style="--d:2;margin-top:12px">If a validator signs two different blocks at the same height (equivocation), the protocol automatically slashes their stake. No human decision needed.</p>
+  <div class="r" style="--d:3;display:flex;gap:32px;margin-top:24px">
+    <div style="flex:1">
+      <p style="font-family:var(--mono);font-size:15px;color:var(--orange);font-weight:600;margin-bottom:10px">MINOR SLASH</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.6">Small percentage cut for accidental offline time. Usually 0.1% — a warning.</p>
+    </div>
+    <div style="flex:1">
+      <p style="font-family:var(--mono);font-size:15px;color:var(--orange);font-weight:600;margin-bottom:10px">MAJOR SLASH</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.6">Large percentage for deliberate equivocation. Can be 100% — total loss.</p>
+    </div>
+    <div style="flex:1">
+      <p style="font-family:var(--mono);font-size:15px;color:var(--orange);font-weight:600;margin-bottom:10px">NOMINATORS LOSE TOO</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.6">Nominators backing a slashed validator also lose a portion. Choose your validators carefully.</p>
+    </div>
+  </div>
+  <div class="callout r" style="--d:4;margin-top:24px"><b>This is why validators behave.</b> The economic stake at risk outweighs any potential gain from cheating. No electricity burned — pure economic incentive.</div>
+</div>
+
+<!-- SLIDE 9: Lab Preview -->
+<div class="slide">
+  <p class="eyebrow r" style="--d:0">&gt;&gt; 11:00 – 12:00 · Lab</p>
+  <h2 class="h-title r" style="font-size:40px;margin-top:8px;--d:1">Today's lab — Validator Election Simulator</h2>
+  <div class="grid-2 r" style="--d:2;margin-top:20px">
+    <div class="card" style="padding:24px">
+      <p style="font-family:var(--mono);font-size:13px;color:var(--orange);letter-spacing:.12em;margin-bottom:8px">CORE</p>
+      <p style="font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:12px">weighted_choice()</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.6">Write weighted_choice() and run 100 elections. Count how many times each validator was selected and print the results as a percentage. Verify that Carol wins roughly 42% of the time.</p>
+    </div>
+    <div class="card accent" style="padding:24px">
+      <p style="font-family:var(--mono);font-size:13px;color:var(--orange);letter-spacing:.12em;margin-bottom:8px">★ STRETCH</p>
+      <p style="font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:12px">Stake shift</p>
+      <p style="font-size:15px;color:var(--muted);line-height:1.6">After 50 rounds, double Alice's stake (she nominated herself more). Run 50 more rounds. Print the before/after win percentages. Show how stake changes affect outcomes.</p>
+    </div>
+  </div>
+  <div class="callout r" style="--d:3;margin-top:20px"><b>How to submit.</b> Create students/&lt;username&gt;/D27_proof_of_stake.py. Full brief in lab/module_3_blockchain/D27_pos/problem.md. PR before 12:00.</div>
+</div>
+
+<!-- SLIDE 10: Recap -->
+<div class="slide" style="justify-content:center;padding:64px 80px">
+  <p class="eyebrow r" style="--d:0">&gt;&gt; End of Day 27</p>
+  <h2 class="h-title r" style="font-size:52px;margin-top:12px;--d:1">Stake, don't burn</h2>
+  <div class="r" style="--d:2;margin-top:36px;display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <span style="color:var(--green);font-weight:700;font-size:18px">✓</span>
+      <p style="font-size:17px;color:var(--text);line-height:1.55">PoS replaces computation with economic stake: validators risk losing tokens if they cheat.</p>
+    </div>
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <span style="color:var(--green);font-weight:700;font-size:18px">✓</span>
+      <p style="font-size:17px;color:var(--text);line-height:1.55">NPoS adds nominators: regular DOT holders back validators and share rewards and risk.</p>
+    </div>
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <span style="color:var(--green);font-weight:700;font-size:18px">✓</span>
+      <p style="font-size:17px;color:var(--text);line-height:1.55">weighted_choice() models the election: higher stake = higher probability of selection.</p>
+    </div>
+  </div>
+  <div class="footer r" style="--d:3;margin-top:40px">
+    <span class="pill">UP NEXT</span>
+    <span style="color:var(--muted);font-size:14px;margin-left:10px">Day 28: wallets and transactions — key pairs, addresses, and adding transactions to our blocks.</span>
+  </div>
+</div>
+
+</div></div>
+<div class="hud"><button id="prev">&#x2039;</button><span class="count"><b id="cur">01</b> / <span id="total">8</span></span><button id="next">&#x203A;</button><span class="sep"></span><button id="fs">⛶</button></div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen</div>
+<script>
+const slides=[...document.querySelectorAll(".slide")];const total=slides.length;let cur=0;document.getElementById("total").textContent=String(total).padStart(2,"0");function show(i){cur=Math.max(0,Math.min(total-1,i));slides.forEach((s,n)=>s.classList.toggle("active",n===cur));document.getElementById("cur").textContent=String(cur+1).padStart(2,"0");document.getElementById("progress").style.width=((cur+1)/total*100)+"%";location.hash=cur+1;}const next=()=>show(cur+1);const prev=()=>show(cur-1);document.addEventListener("keydown",e=>{if(["ArrowRight"," ","PageDown","Enter"].includes(e.key)){e.preventDefault();next();}else if(["ArrowLeft","PageUp","Backspace"].includes(e.key)){e.preventDefault();prev();}else if(e.key==="Home")show(0);else if(e.key==="End")show(total-1);else if(e.key.toLowerCase()==="f")toggleFs();});document.getElementById("next").onclick=next;document.getElementById("prev").onclick=prev;document.getElementById("fs").onclick=toggleFs;function toggleFs(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}const scaler=document.getElementById("scaler");function fit(){const sc=Math.min(window.innerWidth/1280,window.innerHeight/720);scaler.style.transform=`scale(${sc})`;}window.addEventListener("resize",fit);fit();setTimeout(()=>document.querySelector(".hint")?.classList.add("gone"),6000);window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.replace("#",""))||1;if(n-1!==cur)show(n-1);});show((parseInt(location.hash.replace("#",""))||1)-1);
+</script></body></html>

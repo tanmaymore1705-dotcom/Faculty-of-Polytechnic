@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Special Topics · 3 — The Cloud, Demystified</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ─────────────────────────  THEME  ───────────────────────── */
+  :root{
+    --bg:#0A0A0F; --surface:#111122; --card:#15152A;
+    --border:#262640; --border-br:#353556;
+    --text:#E2E8F0; --text-br:#F1F5F9; --muted:#94A3B8; --dim:#64748B; --faint:#475569;
+    --cyan:#00D4FF; --cyan-dim:#0891A8; --yellow:#FFD43B; --green:#34D399; --red:#F87171; --purple:#A78BFA;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+    --disp:'Space Grotesk','IBM Plex Sans',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#050507; color:var(--text); font-family:var(--sans);
+    overflow:hidden; display:grid; place-items:center;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ─────────────────────────  STAGE  ───────────────────────── */
+  .scaler{ transform-origin:center center; }
+  .stage{
+    width:1280px; height:720px; position:relative;
+    background:var(--bg); overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.6); border-radius:10px;
+  }
+  .slide{
+    position:absolute; inset:0; padding:56px 64px 48px;
+    display:flex; flex-direction:column;
+    opacity:0; visibility:hidden; transition:opacity .35s ease;
+  }
+  .slide.active{ opacity:1; visibility:visible; }
+
+  /* staggered entrance */
+  .slide.active .r{ animation:rise .5s cubic-bezier(.2,.7,.2,1) both;
+    animation-delay:calc(var(--d,0) * 55ms); }
+  @keyframes rise{ from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none} }
+
+  /* ─────────────────────────  PRIMITIVES  ───────────────────────── */
+  .eyebrow{ font-family:var(--mono); font-size:13px; font-weight:600;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--cyan); }
+  .h-title{ font-family:var(--disp); font-weight:700; color:var(--text-br);
+    line-height:1.08; }
+  .lede{ font-size:17px; color:var(--muted); line-height:1.55; max-width:62ch; }
+  .body-text{ font-size:18px; color:var(--text); line-height:1.55; max-width:64ch; }
+
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:10px; }
+  .card.accent{ border-color:var(--cyan); background:rgba(0,212,255,.05); }
+
+  /* code / terminal block */
+  .code{ background:#0c0c14; border:1px solid var(--border); border-radius:9px;
+    overflow:hidden; display:flex; flex-direction:column; min-height:0; }
+  .cbar{ display:flex; align-items:center; gap:7px; padding:9px 13px;
+    border-bottom:1px solid var(--border); flex:0 0 auto; }
+  .cd{ width:9px; height:9px; border-radius:50%; background:#5C5C7A; }
+  .cf{ margin-left:8px; font-family:var(--mono); font-size:11.5px; color:var(--dim); }
+  .cpre{ margin:0; padding:14px 16px; overflow:auto; flex:1 1 auto; }
+  .cpre code{ font-family:var(--mono); font-size:15px; line-height:1.62;
+    color:var(--text); white-space:pre; display:block; }
+  /* syntax */
+  .kw{ color:var(--cyan); } .const{ color:var(--purple); }
+  .bif{ color:var(--yellow); } .num{ color:#FFA657; }
+  .str{ color:var(--green); } .com{ color:var(--dim); font-style:italic; }
+  .err{ color:var(--red); font-style:italic; }
+
+  /* ─────────────────────────  HUD  ───────────────────────── */
+  .progress{ position:fixed; top:0; left:0; height:3px; background:var(--cyan);
+    width:0; z-index:50; transition:width .35s ease; box-shadow:0 0 10px var(--cyan); }
+  .hud{ position:fixed; bottom:18px; right:20px; z-index:50;
+    display:flex; align-items:center; gap:14px;
+    font-family:var(--mono); font-size:13px; color:var(--dim);
+    background:rgba(17,17,34,.72); backdrop-filter:blur(8px);
+    border:1px solid var(--border); border-radius:999px; padding:7px 14px;
+    opacity:.5; transition:opacity .25s; }
+  .hud:hover{ opacity:1; }
+  .hud button{ all:unset; cursor:pointer; color:var(--muted); line-height:0;
+    padding:3px 6px; border-radius:6px; transition:color .15s,background .15s;
+    font-size:16px; font-family:var(--mono); }
+  .hud button:hover{ color:var(--cyan); background:rgba(0,212,255,.1); }
+  .hud .count b{ color:var(--cyan); }
+  .hud .sep{ width:1px; height:16px; background:var(--border); }
+  .hint{ position:fixed; bottom:18px; left:20px; z-index:50;
+    font-family:var(--mono); font-size:11px; color:var(--faint);
+    opacity:.7; transition:opacity .6s; }
+  .hint.gone{ opacity:0; }
+  .hint b{ color:var(--dim); }
+
+  /* slide-specific helpers */
+  .day-tag{ position:absolute; top:58px; right:72px; font-family:var(--mono);
+    font-size:14px; color:var(--dim); letter-spacing:.18em; }
+  .footer{ margin-top:auto; }
+  .callout{ border-left:3px solid var(--yellow); background:rgba(255,212,59,.06);
+    padding:14px 18px; border-radius:6px; color:var(--text); font-size:15px;
+    line-height:1.55; }
+  .callout b{ color:var(--yellow); }
+  .pill{ display:inline-block; font-family:var(--mono); font-size:12px;
+    background:rgba(0,212,255,.13); color:var(--cyan); padding:3px 9px;
+    border-radius:999px; letter-spacing:.06em; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
+  .num-list{ list-style:none; counter-reset:s; padding:0; }
+  .num-list li{ counter-increment:s; padding:10px 0 10px 46px; position:relative;
+    font-size:17px; color:var(--text); line-height:1.55; border-bottom:1px solid var(--border); }
+  .num-list li:last-child{ border-bottom:none; }
+  .num-list li::before{ content:counter(s,decimal-leading-zero);
+    position:absolute; left:0; top:10px; font-family:var(--mono);
+    font-size:14px; color:var(--cyan); font-weight:600; }
+
+  /* diagram blocks */
+  .box{ border:1.5px solid var(--border-br); border-radius:10px; background:var(--surface);
+    padding:14px 16px; text-align:center; }
+  .box .lbl{ font-family:var(--disp); font-weight:600; color:var(--text-br); font-size:17px; }
+  .box .sub{ font-family:var(--mono); font-size:12px; color:var(--dim); margin-top:5px; }
+  .box.hot{ border-color:var(--cyan); background:rgba(0,212,255,.06); }
+  .arrow{ display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); color:var(--cyan); font-size:22px; }
+
+  /* ─────────────────────────  PRINT (PDF backup)  ───────────────────────── */
+  @media print{
+    @page{ size:1280px 720px; margin:0; }
+    body{ display:block; overflow:visible; background:#fff; }
+    .scaler{ transform:none !important; }
+    .stage{ box-shadow:none; border-radius:0; }
+    .slide{ position:relative; opacity:1 !important; visibility:visible !important;
+      page-break-after:always; break-after:page; transition:none; }
+    .slide .r{ animation:none !important; }
+    .hud,.hint,.progress{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="scaler" id="scaler">
+<div class="stage" id="stage">
+
+  <!-- ═══════ SLIDE 1 · TITLE ═══════ -->
+  <section class="slide active" style="justify-content:center; padding:64px 72px;">
+    <div style="position:absolute;inset:0;
+      background-image:repeating-linear-gradient(transparent 0,transparent 89px,var(--border) 89px,var(--border) 90px);
+      opacity:.6;"></div>
+    <div style="position:relative;">
+      <div class="r eyebrow" style="--d:0; margin-bottom:26px;">&gt;&gt; Special Topics / 03 / Lecture</div>
+      <h1 class="r h-title" style="--d:1; font-size:74px; letter-spacing:-1px;">The Cloud,<br>Demystified</h1>
+      <div class="r" style="--d:2; font-family:var(--disp); font-weight:500; font-style:italic;
+        font-size:38px; color:var(--cyan); margin-top:10px;">Someone else's computer, for rent</div>
+
+      <div class="r" style="--d:3; margin-top:42px; font-size:18px; color:var(--muted); max-width:62ch; line-height:1.55;">
+        Netflix, Instagram, ChatGPT, your college's website — almost nothing runs on its owner's
+        own machines anymore. They <em style="color:var(--text);">rent</em> computers by the hour. That rental business is "the cloud".
+      </div>
+
+      <div class="r" style="--d:4; display:flex; gap:42px; margin-top:44px; font-size:15px;
+        font-family:var(--sans);">
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Lecture</span>
+          <div style="color:var(--text-br);margin-top:4px;">75 min</div></div>
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Builds on</span>
+          <div style="color:var(--text-br);margin-top:4px;">ST1 + ST2</div></div>
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Series</span>
+          <div style="color:var(--cyan);margin-top:4px;">ST · How It Really Works</div></div>
+      </div>
+    </div>
+    <div class="day-tag">ST 03 / 03</div>
+  </section>
+
+  <!-- ═══════ SLIDE 2 · AGENDA ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Today's roadmap</div>
+    <h2 class="r h-title" style="--d:1; font-size:44px; margin-top:8px;">Six stops in the data center</h2>
+
+    <ol class="r num-list" style="--d:2; margin-top:30px; max-width:80ch;">
+      <li>What the cloud <b style="color:var(--text-br);">really is</b> (and isn't)</li>
+      <li>The <b style="color:var(--text-br);">problem</b> it solves — why owning servers hurts</li>
+      <li>Inside a <b style="color:var(--text-br);">data center</b> — what's actually there</li>
+      <li><b style="color:var(--text-br);">IaaS / PaaS / SaaS</b> — the three ways to rent</li>
+      <li><b style="color:var(--text-br);">Virtualization &amp; scaling</b> — many tenants, instant growth</li>
+      <li><b style="color:var(--text-br);">Pay-as-you-go</b> — and where your Python could run</li>
+    </ol>
+
+    <div class="r footer" style="--d:3; display:flex; align-items:center; gap:14px;
+      border:1.5px solid var(--cyan); border-radius:10px; padding:14px 20px;
+      background:rgba(0,212,255,.04);">
+      <span class="pill">GOAL</span>
+      <span style="font-size:16px;color:var(--text);">Understand what you're actually paying for when you "deploy to the cloud".</span>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 3 · HOOK ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; The hook</div>
+    <h2 class="r h-title" style="--d:1; font-size:44px; margin-top:8px;">"There is no cloud.<br>It's just someone else's computer."</h2>
+    <p class="r body-text" style="--d:2; margin-top:20px;">
+      The word "cloud" hides a very ordinary truth. When your photos are "in the cloud", they're on a
+      <b style="color:var(--text-br);">hard drive</b>, in a <b style="color:var(--text-br);">building</b>, in a city somewhere, owned by a company like Amazon or Google.
+    </p>
+    <p class="r body-text" style="--d:3; margin-top:16px;">
+      The genius isn't the technology — it's the <em style="color:var(--cyan);font-style:normal;">business model</em>: rent computing by the minute,
+      so you never have to buy, house, or babysit a server yourself.
+    </p>
+
+    <div class="r callout footer" style="--d:4;">
+      <b>Reframe for today:</b> "the cloud" = a giant pile of the exact computers from ST1, in a building, connected by the internet from ST2, that you rent instead of own.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 4 · THE PROBLEM ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 02 / 06 · The problem it solves</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Why owning your own servers hurts</h2>
+
+    <div class="grid-2" style="margin-top:26px;">
+      <div class="r card" style="--d:2; padding:24px;">
+        <div class="pill" style="background:rgba(248,113,113,.16);color:var(--red);">OLD WAY · BUY</div>
+        <ul style="list-style:none;padding:0;margin-top:16px;display:flex;flex-direction:column;gap:11px;color:var(--text);font-size:16px;line-height:1.5;">
+          <li>Spend <b style="color:var(--text-br);">lakhs upfront</b> before serving one user.</li>
+          <li>Guess your peak load — guess wrong, you crash or overpay.</li>
+          <li>Wait <b style="color:var(--text-br);">weeks</b> for new hardware to ship.</li>
+          <li>Power, cooling, security, repairs — all yours.</li>
+        </ul>
+      </div>
+      <div class="r card accent" style="--d:3; padding:24px;">
+        <div class="pill">CLOUD WAY · RENT</div>
+        <ul style="list-style:none;padding:0;margin-top:16px;display:flex;flex-direction:column;gap:11px;color:var(--text);font-size:16px;line-height:1.5;">
+          <li>Pay <b style="color:var(--green);">pennies per hour</b>, only while you use it.</li>
+          <li>Need 100 more servers for one busy night? Click. <b style="color:var(--green);">Done in seconds.</b></li>
+          <li>Turn them off in the morning, stop paying.</li>
+          <li>Power, cooling, repairs — <b style="color:var(--text-br);">their problem.</b></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:4; margin-top:24px;">
+      <b>The unlock:</b> a two-person startup can now use the same world-class infrastructure as a giant bank — and pay only for what they touch.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 5 · INSIDE A DATA CENTER ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 03 / 06 · Inside a data center</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">The "cloud" is this building</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      A warehouse the size of a stadium, filled with rack after rack of the computers from ST1 — tens of thousands of them, running 24/7.
+    </p>
+
+    <div class="grid-3" style="margin-top:26px;">
+      <div class="r card" style="--d:3; padding:20px;">
+        <div style="font-family:var(--mono); font-size:16px; color:var(--yellow); font-weight:600;">Racks of servers</div>
+        <p style="color:var(--muted); margin-top:10px; font-size:14.5px; line-height:1.5;">Stripped-down computers — just CPU, RAM, storage, network. No screen, stacked in metal shelves.</p>
+      </div>
+      <div class="r card" style="--d:4; padding:20px;">
+        <div style="font-family:var(--mono); font-size:16px; color:var(--yellow); font-weight:600;">Power &amp; cooling</div>
+        <p style="color:var(--muted); margin-top:10px; font-size:14.5px; line-height:1.5;">Backup generators, batteries, and massive A/C — heat is the enemy. Cooling can cost as much as the computing.</p>
+      </div>
+      <div class="r card" style="--d:5; padding:20px;">
+        <div style="font-family:var(--mono); font-size:16px; color:var(--yellow); font-weight:600;">Redundancy</div>
+        <p style="color:var(--muted); margin-top:10px; font-size:14.5px; line-height:1.5;">Two of everything. A drive dies, a server fails — your data is copied elsewhere, you never notice.</p>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:6; margin-top:24px;">
+      <b>Why near rivers and cold places?</b> Data centers drink electricity and need cooling. Providers build them where power is cheap and the climate helps — Iceland, Oregon, northern India.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 6 · IaaS / PaaS / SaaS ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 04 / 06 · The three service models</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Three ways to rent — how much do they manage?</h2>
+
+    <div class="grid-3" style="margin-top:26px;">
+      <div class="r card" style="--d:2; padding:22px;">
+        <div style="font-family:var(--mono); font-size:18px; color:var(--cyan); font-weight:600;">IaaS</div>
+        <div style="color:var(--dim);font-size:12px;font-family:var(--mono);margin-top:3px;">Infrastructure</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:14.5px; line-height:1.5;">You rent a bare computer. <b style="color:var(--text);">You install everything.</b> Most control, most work.</p>
+        <p style="color:var(--dim); margin-top:10px; font-size:13px;">e.g. AWS EC2</p>
+      </div>
+      <div class="r card accent" style="--d:3; padding:22px;">
+        <div style="font-family:var(--mono); font-size:18px; color:var(--cyan); font-weight:600;">PaaS</div>
+        <div style="color:var(--dim);font-size:12px;font-family:var(--mono);margin-top:3px;">Platform</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:14.5px; line-height:1.5;">You just upload your <b style="color:var(--text);">code</b>. They run it. No server admin. The sweet spot for beginners.</p>
+        <p style="color:var(--dim); margin-top:10px; font-size:13px;">e.g. Heroku, Render</p>
+      </div>
+      <div class="r card" style="--d:4; padding:22px;">
+        <div style="font-family:var(--mono); font-size:18px; color:var(--cyan); font-weight:600;">SaaS</div>
+        <div style="color:var(--dim);font-size:12px;font-family:var(--mono);margin-top:3px;">Software</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:14.5px; line-height:1.5;">You just <b style="color:var(--text);">use the app</b> in a browser. Someone else built and runs all of it.</p>
+        <p style="color:var(--dim); margin-top:10px; font-size:13px;">e.g. Gmail, Canva</p>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:5; margin-top:24px;">
+      <b>The pizza analogy.</b> IaaS = they give you the kitchen, you cook. PaaS = they cook, you bring the recipe. SaaS = they serve you the pizza. Same dinner, different amount of work.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 7 · VIRTUALIZATION ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 05 / 06 · The trick that makes it cheap</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">One real computer, many "virtual" ones</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      A single powerful server is sliced by software into many isolated machines. You rent a slice; your neighbour rents another; neither of you can see the other.
+    </p>
+
+    <div class="r" style="--d:3; margin-top:24px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+      <div class="box hot"><div class="lbl">VM — you</div><div class="sub">your Python app</div></div>
+      <div class="box hot"><div class="lbl">VM — a startup</div><div class="sub">their website</div></div>
+      <div class="box hot"><div class="lbl">VM — a student</div><div class="sub">their project</div></div>
+    </div>
+    <div class="r" style="--d:4; text-align:center; margin:10px 0; font-family:var(--mono); color:var(--cyan); font-size:20px;">&#8595; all share &#8595;</div>
+    <div class="r" style="--d:5; "><div class="box" style="background:var(--card);"><div class="lbl">One physical server in the data center</div><div class="sub">the real CPU, RAM &amp; storage from ST1</div></div></div>
+
+    <div class="r footer" style="--d:6; font-size:14px; color:var(--muted); margin-top:18px;">
+      <b style="color:var(--text);">Containers</b> (like Docker) take this further — lighter, faster slices that start in seconds. Same idea: pack many tenants safely onto one machine, so it's never sitting idle.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 8 · SCALING ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; The superpower</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Scaling — grow in seconds, shrink at midnight</h2>
+
+    <div class="grid-2" style="margin-top:26px;">
+      <div class="r card" style="--d:2; padding:24px;">
+        <div class="pill">VERTICAL · bigger</div>
+        <p style="color:var(--muted); margin-top:14px; font-size:15.5px; line-height:1.55;">
+          Give the <b style="color:var(--text);">one</b> server more CPU and RAM. Simple, but there's a ceiling — and you must reboot.
+        </p>
+      </div>
+      <div class="r card accent" style="--d:3; padding:24px;">
+        <div class="pill">HORIZONTAL · more</div>
+        <p style="color:var(--muted); margin-top:14px; font-size:15.5px; line-height:1.55;">
+          Add <b style="color:var(--text);">more</b> servers and split the traffic between them. Nearly unlimited — this is how Netflix survives a new release.
+        </p>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:4; margin-top:26px;">
+      <b>Elasticity</b> is the magic word: scale up automatically when traffic spikes, scale back down when it's quiet — so on Diwali night you run 50 servers, and at 4 a.m. you run 2 and pay for 2. <b>You pay for the shape of your day.</b>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 9 · PAY AS YOU GO ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 06 / 06 · The meter is running</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">You pay like electricity, not like a car</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      No big purchase. A meter ticks for compute time, storage, and data sent out — billed to the second.
+    </p>
+
+    <div class="r code" style="--d:3; margin-top:22px; flex:1; min-height:0;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">a_tiny_monthly_bill</span></div>
+<pre class="cpre"><code><span class="com"># A small Python web app, running all month:</span>
+small server (1 CPU, 1 GB)  : <span class="num">730</span> hrs &times; $0.010  = <span class="str">$ 7.30</span>
+storage for your files      : <span class="num">10</span> GB  &times; $0.023  = <span class="str">$ 0.23</span>
+data sent to users          : <span class="num">5</span> GB   &times; $0.090  = <span class="str">$ 0.45</span>
+                                            <span class="com">─────────</span>
+                              total/month  &asymp; <span class="str">$ 8.00</span>
+
+<span class="com"># Forgot to turn off a big GPU box? That same month: $1,000+ 😱</span></code></pre>
+    </div>
+
+    <div class="r footer callout" style="--d:4; margin-top:18px;">
+      <b>The famous beginner mistake:</b> spinning up something powerful, forgetting it, and getting a shock bill. <b>Always set a billing alert.</b> The meter never sleeps.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 10 · PROVIDERS & REGIONS ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; The landscape</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Who rents, and why location matters</h2>
+
+    <div class="grid-3" style="margin-top:26px;">
+      <div class="r card" style="--d:2; padding:20px;">
+        <div style="font-family:var(--disp); font-size:19px; color:var(--text-br); font-weight:600;">AWS</div>
+        <p style="color:var(--muted); margin-top:8px; font-size:14px;">Amazon. The biggest, oldest, most services.</p>
+      </div>
+      <div class="r card" style="--d:3; padding:20px;">
+        <div style="font-family:var(--disp); font-size:19px; color:var(--text-br); font-weight:600;">Azure</div>
+        <p style="color:var(--muted); margin-top:8px; font-size:14px;">Microsoft. Big in companies &amp; offices.</p>
+      </div>
+      <div class="r card" style="--d:4; padding:20px;">
+        <div style="font-family:var(--disp); font-size:19px; color:var(--text-br); font-weight:600;">Google Cloud</div>
+        <p style="color:var(--muted); margin-top:8px; font-size:14px;">Google. Strong in data &amp; AI.</p>
+      </div>
+    </div>
+
+    <div class="r" style="--d:5; margin-top:24px;">
+      <div class="callout">
+        <b>Regions &amp; availability zones.</b> Each provider has data centers worldwide — Mumbai, Singapore, Frankfurt. You pick the one <b>closest to your users</b> so the ST2 journey is short and the app feels fast. Spread across zones, and a whole building can fail without taking you down.
+      </div>
+    </div>
+
+    <div class="r footer" style="--d:6; font-size:14px; color:var(--muted); margin-top:18px;">
+      Hosting in Mumbai vs Virginia can be the difference between a 30 ms and a 250 ms page load for an Indian user. Geography is still real, even in "the cloud".
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 11 · WHERE YOUR PYTHON RUNS ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Bringing it home</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Your Python script, on the internet</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      Everything you've written runs on <em>your</em> laptop. With the cloud, the same file can run on a rented computer that's online 24/7 — reachable by anyone, anywhere.
+    </p>
+
+    <div class="r code" style="--d:3; margin-top:22px; flex:1; min-height:0;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">the_whole_series_in_one_picture</span></div>
+<pre class="cpre"><code><span class="kw">your code</span>  (the Python you wrote)
+    &#8595;  upload to a PaaS  (Render, Railway, PythonAnywhere&hellip;)
+<span class="kw">a rented computer</span>  (ST1: CPU + RAM + storage, in a data center)
+    &#8595;  given a public IP + a DNS name
+<span class="kw">the internet</span>  (ST2: DNS → packets → HTTPS)
+    &#8595;
+<span class="str">anyone, anywhere, opens your-app.com  →  your code runs</span></code></pre>
+    </div>
+
+    <div class="r footer" style="--d:4; display:flex; gap:14px; align-items:center; margin-top:16px;">
+      <span class="pill">FULL CIRCLE</span>
+      <span style="font-size:15px;color:var(--muted);">A computer (ST1), talking over the internet (ST2), rented from the cloud (ST3). That's the whole stack.</span>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 12 · ACTIVITY ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Try it yourself</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;">Touch the cloud</h2>
+
+    <div class="grid-2" style="margin-top:28px;">
+      <div class="r card" style="--d:2; padding:24px;">
+        <div class="pill">PRICE IT</div>
+        <div style="font-family:var(--disp); font-size:22px; font-weight:600; color:var(--text-br); margin-top:14px;">Read a real menu</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:15px; line-height:1.55;">
+          Open a free-tier signup (Render or PythonAnywhere). Find the price of the <b style="color:var(--text);">smallest server</b>. Work out the monthly cost — and whether the free tier covers a class project.
+        </p>
+      </div>
+      <div class="r card" style="--d:3; padding:24px;">
+        <div class="pill">CLASSIFY</div>
+        <div style="font-family:var(--disp); font-size:22px; font-weight:600; color:var(--text-br); margin-top:14px;">IaaS, PaaS, or SaaS?</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:15px; line-height:1.55;">
+          Label five apps you use daily — Gmail, YouTube, your bank app, Canva, ChatGPT. Which model is each, and how can you tell?
+        </p>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:4;">
+      <b>Stretch (the grand finale).</b> Deploy one of your earlier Python labs to a free PaaS and get a public link. You'll have shipped real software to the real internet — the four ST1 parts, reached over the ST2 path, rented from an ST3 provider.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 13 · RECAP / SERIES CLOSE ═══════ -->
+  <section class="slide" style="justify-content:center; padding:64px 80px;">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; End of the Special Topics series</div>
+    <h2 class="r h-title" style="--d:1; font-size:50px; margin-top:8px;">You can now see the whole stack</h2>
+
+    <ul style="list-style:none; padding:0; margin-top:32px; max-width:86ch;">
+      <li class="r" style="--d:2; padding:12px 0; font-size:20px; color:var(--text); border-bottom:1px solid var(--border);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        <b style="color:var(--text-br);">ST1</b> — one computer: CPU, memory, storage, doing tiny operations billions of times a second.
+      </li>
+      <li class="r" style="--d:3; padding:12px 0; font-size:20px; color:var(--text); border-bottom:1px solid var(--border);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        <b style="color:var(--text-br);">ST2</b> — the internet: addresses, DNS, packets and HTTPS connecting those computers.
+      </li>
+      <li class="r" style="--d:4; padding:12px 0; font-size:20px; color:var(--text); border-bottom:1px solid var(--border);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        <b style="color:var(--text-br);">ST3</b> — the cloud: renting those computers, at scale, by the second.
+      </li>
+      <li class="r" style="--d:5; padding:12px 0; font-size:20px; color:var(--text);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        And where <em>your</em> Python fits into all of it.
+      </li>
+    </ul>
+
+    <div class="r footer" style="--d:6; display:flex; align-items:center; gap:14px; font-size:15px; color:var(--muted);">
+      <span class="pill">YOU'VE GOT THE MAP</span>
+      <span>Next time someone says "it's in the cloud", you'll know exactly what they mean.</span>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<div class="hud">
+  <button id="prev" title="Previous (←)">&#x2039;</button>
+  <span class="count"><b id="cur">01</b> / <span id="total">13</span></span>
+  <button id="next" title="Next (→)">&#x203A;</button>
+  <span class="sep"></span>
+  <button id="fs" title="Fullscreen (F)">⛶</button>
+</div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen &nbsp; <b>Ctrl/⌘+P</b> save as PDF</div>
+
+<script>
+/* ───────── navigation ───────── */
+const slides = [...document.querySelectorAll(".slide")];
+const total  = slides.length;
+let cur = 0;
+document.getElementById("total").textContent = String(total).padStart(2,"0");
+
+function show(i){
+  cur = Math.max(0, Math.min(total-1, i));
+  slides.forEach((s,n) => s.classList.toggle("active", n===cur));
+  document.getElementById("cur").textContent = String(cur+1).padStart(2,"0");
+  document.getElementById("progress").style.width = ((cur+1)/total*100)+"%";
+  location.hash = cur+1;
+}
+const next = () => show(cur+1);
+const prev = () => show(cur-1);
+
+document.addEventListener("keydown", e => {
+  if (["ArrowRight"," ","PageDown","Enter"].includes(e.key)) { e.preventDefault(); next(); }
+  else if (["ArrowLeft","PageUp","Backspace"].includes(e.key)) { e.preventDefault(); prev(); }
+  else if (e.key === "Home") show(0);
+  else if (e.key === "End")  show(total-1);
+  else if (e.key.toLowerCase() === "f") toggleFs();
+});
+document.getElementById("next").onclick = next;
+document.getElementById("prev").onclick = prev;
+document.getElementById("fs").onclick   = toggleFs;
+
+function toggleFs(){
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* ───────── fit stage to viewport ───────── */
+const scaler = document.getElementById("scaler");
+function fit(){
+  const sc = Math.min(window.innerWidth/1280, window.innerHeight/720);
+  scaler.style.transform = `scale(${sc})`;
+}
+window.addEventListener("resize", fit);
+fit();
+
+/* fade the keyboard hint after a few seconds */
+setTimeout(() => document.querySelector(".hint")?.classList.add("gone"), 6000);
+
+/* deep-link via hash (also handles browser back/forward) */
+window.addEventListener("hashchange", () => {
+  const n = parseInt(location.hash.replace("#","")) || 1;
+  if (n-1 !== cur) show(n-1);
+});
+const start = parseInt(location.hash.replace("#","")) || 1;
+show(start-1);
+</script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module 4 · Day 31 — What is Polkadot?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0A0A0F;--surface:#111122;--card:#15152A;--border:#262640;--text:#E2E8F0;--text-br:#F1F5F9;--muted:#94A3B8;--dim:#64748B;--faint:#475569;--cyan:#00D4FF;--yellow:#FFD43B;--green:#34D399;--red:#F87171;--purple:#A78BFA;--orange:#F59E0B;--pink:#E6007A;--acc:var(--pink);--mono:'IBM Plex Mono',ui-monospace,monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;--disp:'Space Grotesk','IBM Plex Sans',sans-serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
+  body{background:#050507;color:var(--text);font-family:var(--sans);overflow:hidden;display:grid;place-items:center;-webkit-font-smoothing:antialiased;}
+  .scaler{transform-origin:center center;}
+  .stage{width:1280px;height:720px;position:relative;background:var(--bg);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);border-radius:10px;}
+  .slide{position:absolute;inset:0;padding:56px 64px 48px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s ease;}
+  .slide.active{opacity:1;visibility:visible;}
+  .slide.active .r{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0)*55ms);}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .eyebrow{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);}
+  .h-title{font-family:var(--disp);font-weight:700;color:var(--text-br);line-height:1.08;}
+  .lede{font-size:17px;color:var(--muted);line-height:1.55;max-width:62ch;}
+  .body-text{font-size:18px;color:var(--text);line-height:1.55;max-width:64ch;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;}
+  .card.accent{border-color:var(--acc);background:rgba(230,0,122,.05);}
+  .code{background:#0c0c14;border:1px solid var(--border);border-radius:9px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+  .cbar{display:flex;align-items:center;gap:7px;padding:9px 13px;border-bottom:1px solid var(--border);flex:0 0 auto;}
+  .cd{width:9px;height:9px;border-radius:50%;background:#5C5C7A;}
+  .cf{margin-left:8px;font-family:var(--mono);font-size:11.5px;color:var(--dim);}
+  .cpre{margin:0;padding:14px 16px;overflow:auto;flex:1 1 auto;}
+  .cpre code{font-family:var(--mono);font-size:15px;line-height:1.62;color:var(--text);white-space:pre;display:block;}
+  .kw{color:var(--cyan);}.bif{color:var(--yellow);}.num{color:#FFA657;}.str{color:var(--green);}.com{color:var(--dim);font-style:italic;}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--acc);width:0;z-index:50;transition:width .35s ease;box-shadow:0 0 10px var(--acc);}
+  .hud{position:fixed;bottom:18px;right:20px;z-index:50;display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:13px;color:var(--dim);background:rgba(17,17,34,.72);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:999px;padding:7px 14px;opacity:.5;transition:opacity .25s;}
+  .hud:hover{opacity:1;}
+  .hud button{all:unset;cursor:pointer;color:var(--muted);line-height:0;padding:3px 6px;border-radius:6px;transition:color .15s,background .15s;font-size:16px;}
+  .hud button:hover{color:var(--acc);background:rgba(230,0,122,.1);}
+  .hud .count b{color:var(--acc);}
+  .hud .sep{width:1px;height:16px;background:var(--border);}
+  .hint{position:fixed;bottom:18px;left:20px;z-index:50;font-family:var(--mono);font-size:11px;color:var(--faint);opacity:.7;transition:opacity .6s;}
+  .hint.gone{opacity:0;}
+  .day-tag{position:absolute;top:58px;right:72px;font-family:var(--mono);font-size:14px;color:var(--dim);letter-spacing:.18em;}
+  .footer{margin-top:auto;}
+  .callout{border-left:3px solid var(--acc);background:rgba(230,0,122,.06);padding:14px 18px;border-radius:6px;color:var(--text);font-size:15px;line-height:1.55;}
+  .callout b{color:var(--acc);}
+  .pill{display:inline-block;font-family:var(--mono);font-size:12px;background:rgba(230,0,122,.13);color:var(--acc);padding:3px 9px;border-radius:999px;letter-spacing:.06em;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+  .num-list{list-style:none;counter-reset:s;padding:0;}
+  .num-list li{counter-increment:s;padding:10px 0 10px 46px;position:relative;font-size:17px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);}
+  .num-list li:last-child{border-bottom:none;}
+  .num-list li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:10px;font-family:var(--mono);font-size:14px;color:var(--acc);font-weight:600;}
+  @media print{@page{size:1280px 720px;margin:0}body{display:block;overflow:visible}.scaler{transform:none!important}.stage{box-shadow:none;border-radius:0}.slide{position:relative;opacity:1!important;visibility:visible!important;page-break-after:always}.slide .r{animation:none!important}.hud,.hint,.progress{display:none!important}}
+</style></head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="scaler" id="scaler"><div class="stage" id="stage">
+
+<!-- SLIDE 1: TITLE -->
+<div class="slide active" style="justify-content:center;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(230,0,122,.07) 0%,transparent 70%),var(--bg);">
+  <div class="day-tag r" style="--d:0">DAY 31 / 40</div>
+  <div style="max-width:820px;">
+    <div class="eyebrow r" style="--d:1;margin-bottom:18px;">&gt;&gt; Module 04 / Day 31 / Lecture</div>
+    <h1 class="h-title r" style="--d:2;font-size:72px;margin-bottom:16px;">What is Polkadot?</h1>
+    <p class="r" style="--d:3;font-size:38px;font-style:italic;color:var(--acc);margin-bottom:28px;font-family:var(--disp);">Module 4 begins — the network you just built, at production scale</p>
+    <p class="lede r" style="--d:4;margin-bottom:40px;">You spent 10 days building a tiny blockchain in Python. Today you see what that looks like when scaled to a production network with 300 validators and 50 parachains.</p>
+    <div class="r" style="--d:5;display:flex;gap:16px;flex-wrap:wrap;">
+      <div class="card" style="padding:14px 20px;">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--acc);letter-spacing:.14em;margin-bottom:5px;">LECTURE</div>
+        <div style="font-size:15px;color:var(--text-br);">75 min &nbsp;·&nbsp; 09:00–10:15</div>
+      </div>
+      <div class="card" style="padding:14px 20px;">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--acc);letter-spacing:.14em;margin-bottom:5px;">LAB</div>
+        <div style="font-size:15px;color:var(--text-br);">60 min &nbsp;·&nbsp; Explore polkadot.network</div>
+      </div>
+      <div class="card" style="padding:14px 20px;">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--acc);letter-spacing:.14em;margin-bottom:5px;">MODULE</div>
+        <div style="font-size:15px;color:var(--text-br);">M4 &nbsp;·&nbsp; Polkadot Basics</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 2: AGENDA -->
+<div class="slide">
+  <div class="day-tag r" style="--d:0">DAY 31 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; Today's agenda</div>
+  <h2 class="h-title r" style="--d:2;font-size:44px;margin-bottom:32px;">What we cover today</h2>
+  <ol class="num-list r" style="--d:3;max-width:720px;">
+    <li>The blockchain island problem — why chains can't talk to each other</li>
+    <li>Polkadot's solution — a network of blockchains</li>
+    <li>The scalability trilemma</li>
+    <li>Shared security — Polkadot's killer feature</li>
+    <li>DOT token overview</li>
+    <li>Lab — explore the live Polkadot network</li>
+  </ol>
+</div>
+
+<!-- SLIDE 3: THE ISLAND PROBLEM -->
+<div class="slide">
+  <div class="day-tag r" style="--d:0">DAY 31 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 01 / 04 · The problem</div>
+  <h2 class="h-title r" style="--d:2;font-size:40px;margin-bottom:14px;">Every blockchain is an island</h2>
+  <p class="body-text r" style="--d:3;margin-bottom:18px;">Bitcoin can do one thing: transfer BTC. Ethereum does smart contracts. Solana processes transactions fast. But they can't talk to each other. Sending BTC to Ethereum requires a centralised "bridge" — which gets hacked constantly.</p>
+  <div class="callout r" style="--d:4;margin-bottom:22px;"><b>The island problem:</b> Thousands of blockchains, each with different rules, none able to communicate natively. This limits what you can build and fragments the ecosystem.</div>
+  <div class="r" style="--d:5;display:flex;gap:16px;flex:1;min-height:0;">
+    <div class="card" style="flex:1;padding:22px 20px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:10px;">BITCOIN</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.5;">Transfers BTC only. No smart contracts. Very secure.</p>
+    </div>
+    <div class="card" style="flex:1;padding:22px 20px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:10px;">ETHEREUM</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.5;">Smart contracts. DeFi, NFTs. Gets congested, expensive.</p>
+    </div>
+    <div class="card accent" style="flex:1;padding:22px 20px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--acc);letter-spacing:.12em;margin-bottom:10px;">POLKADOT</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.5;">Connects multiple chains. Each specialised. All secured together.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: POLKADOT'S SOLUTION -->
+<div class="slide">
+  <div class="day-tag r" style="--d:0">DAY 31 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 02 / 04 · The solution</div>
+  <h2 class="h-title r" style="--d:2;font-size:40px;margin-bottom:14px;">A network of blockchains — all connected</h2>
+  <p class="lede r" style="--d:3;margin-bottom:22px;">Polkadot is not one blockchain. It is a protocol that connects many blockchains (called parachains) to a central relay chain, giving them all shared security and the ability to communicate.</p>
+  <div class="grid-2 r" style="--d:4;flex:1;min-height:0;">
+    <div class="card" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:12px;">THE OLD WAY</div>
+      <ul style="list-style:none;padding:0;font-size:15px;color:var(--text);line-height:1.7;">
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">Each blockchain is standalone</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">Needs its own validators</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">No communication with others</li>
+        <li style="padding:5px 0;">If validators collude, users lose funds</li>
+      </ul>
+    </div>
+    <div class="card accent" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--acc);letter-spacing:.12em;margin-bottom:12px;">THE POLKADOT WAY</div>
+      <ul style="list-style:none;padding:0;font-size:15px;color:var(--text);line-height:1.7;">
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">Parachains connect to the relay chain</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">They all share the relay chain's validators</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">They can send messages to each other</li>
+        <li style="padding:5px 0;">One validator set secures all</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout r" style="--d:5;margin-top:18px;"><b>Built by Gavin Wood</b> — co-founder and former CTO of Ethereum, who wrote the Ethereum Yellow Paper. He designed Polkadot to solve the problems he saw with Ethereum.</div>
+</div>
+
+<!-- SLIDE 5: THE SCALABILITY TRILEMMA -->
+<div class="slide">
+  <div class="day-tag r" style="--d:0">DAY 31 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 03 / 04 · The fundamental challenge</div>
+  <h2 class="h-title r" style="--d:2;font-size:38px;margin-bottom:12px;">The blockchain trilemma — pick two?</h2>
+  <p class="lede r" style="--d:3;margin-bottom:22px;">Every blockchain designer faces this impossible triangle. Optimising for two corners weakens the third.</p>
+  <div class="grid-3 r" style="--d:4;flex:1;min-height:0;">
+    <div class="card" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:12px;">SECURITY</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.55;">Validators agree on every transaction. Hard to manipulate. Bitcoin is maximally secure.</p>
+    </div>
+    <div class="card accent" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--acc);letter-spacing:.12em;margin-bottom:12px;">SCALABILITY</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.55;">Handling thousands of transactions per second. Visa processes 24,000 TPS. Most chains handle 10–100.</p>
+    </div>
+    <div class="card" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:12px;">DECENTRALISATION</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.55;">No single entity controls the chain. Many independent validators. Prevents censorship.</p>
+    </div>
+  </div>
+  <div class="callout r" style="--d:5;margin-top:18px;"><b>Polkadot's answer:</b> Separate the concerns. The relay chain handles security and decentralisation. Parachains handle scalability. Each parachain can be optimised independently.</div>
+</div>
+
+<!-- SLIDE 6: SHARED SECURITY -->
+<div class="slide">
+  <div class="day-tag r" style="--d:0">DAY 31 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 04 / 04 · Polkadot's killer feature</div>
+  <h2 class="h-title r" style="--d:2;font-size:40px;margin-bottom:14px;">Shared security — the biggest advantage</h2>
+  <p class="body-text r" style="--d:3;margin-bottom:22px;">Launching a new blockchain from scratch requires recruiting and funding your own set of validators. If the chain is small, a handful of attackers could take over (51% attack). Polkadot solves this: any chain that connects as a parachain instantly gets the full security of Polkadot's 300 validators.</p>
+  <div class="grid-2 r" style="--d:4;flex:1;min-height:0;">
+    <div class="card" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:12px;">STARTING A CHAIN ALONE</div>
+      <ul style="list-style:none;padding:0;font-size:15px;color:var(--text);line-height:1.7;">
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">Need: 100+ validators</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">Each with staked tokens</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">All running 24/7</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">Coordinated governance</li>
+        <li style="padding:5px 0;color:var(--red);">If you're small: easy to attack</li>
+      </ul>
+    </div>
+    <div class="card accent" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--acc);letter-spacing:.12em;margin-bottom:12px;">STARTING AS A PARACHAIN</div>
+      <ul style="list-style:none;padding:0;font-size:15px;color:var(--text);line-height:1.7;">
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">Just build your chain logic</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border);">Connect to Polkadot</li>
+        <li style="padding:5px 0;color:var(--green);">Instantly secured by all of Polkadot's validators and their staked DOT</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: DOT TOKEN -->
+<div class="slide">
+  <div class="day-tag r" style="--d:0">DAY 31 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; The native token</div>
+  <h2 class="h-title r" style="--d:2;font-size:40px;margin-bottom:14px;">DOT — three jobs in one token</h2>
+  <div class="grid-3 r" style="--d:3;flex:1;min-height:0;">
+    <div class="card" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:14px;">STAKING</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.55;">Validators and nominators lock DOT to participate in NPoS. Earn rewards for honest participation. Slashed for misbehaviour.</p>
+    </div>
+    <div class="card accent" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--acc);letter-spacing:.12em;margin-bottom:14px;">GOVERNANCE</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.55;">DOT holders vote on changes to the network: runtime upgrades, fee adjustments, treasury spending. Polkadot is governed by its community, not a company.</p>
+    </div>
+    <div class="card" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:14px;">BONDING</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.55;">Parachains lock DOT to reserve a slot on the relay chain. Under Polkadot 2.0, they buy Coretime instead — but DOT is still the payment currency.</p>
+    </div>
+  </div>
+  <div class="callout r" style="--d:4;margin-top:18px;"><b>Polkadot launched</b> in May 2020. The relay chain went live first (transfers only), then governance, then parachains (December 2021). Everything was enabled gradually by on-chain governance votes.</div>
+</div>
+
+<!-- SLIDE 8: LAB PREVIEW -->
+<div class="slide">
+  <div class="day-tag r" style="--d:0">DAY 31 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 11:00 – 12:00 · Lab</div>
+  <h2 class="h-title r" style="--d:2;font-size:42px;margin-bottom:22px;">Today's lab — Explore Polkadot</h2>
+  <div class="grid-2 r" style="--d:3;flex:1;min-height:0;">
+    <div class="card" style="padding:26px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.12em;margin-bottom:12px;">CORE</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text-br);margin-bottom:10px;">Network explorer</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.55;margin-bottom:12px;">Open polkadot.network in your browser. Find:</p>
+      <ol style="padding-left:18px;font-size:15px;color:var(--text);line-height:1.8;">
+        <li>The current number of active parachains</li>
+        <li>The total DOT staked</li>
+        <li>The current block number</li>
+      </ol>
+      <p style="font-size:14px;color:var(--muted);margin-top:12px;">Write these three numbers in a comment at the top of a Python file.</p>
+    </div>
+    <div class="card accent" style="padding:26px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--acc);letter-spacing:.12em;margin-bottom:12px;">★ STRETCH</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text-br);margin-bottom:10px;">Parachain finder</div>
+      <p style="font-size:15px;color:var(--text);line-height:1.55;margin-bottom:12px;">Visit parachains.info. Pick 3 parachains and describe:</p>
+      <ul style="padding-left:18px;font-size:15px;color:var(--text);line-height:1.8;">
+        <li>What problem they solve</li>
+        <li>What token they use</li>
+        <li>One real project built on them</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout r" style="--d:4;margin-top:18px;"><b>How to submit.</b> Create students/&lt;username&gt;/D31_polkadot_explore.py with your findings as comments. PR before 12:00.</div>
+</div>
+
+<!-- SLIDE 9: RECAP -->
+<div class="slide" style="justify-content:center;padding:64px 80px;">
+  <div class="day-tag r" style="--d:0">DAY 31 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:18px;">&gt;&gt; End of Day 31</div>
+  <h2 class="h-title r" style="--d:2;font-size:52px;margin-bottom:32px;">Polkadot in three sentences</h2>
+  <div class="r" style="--d:3;max-width:760px;">
+    <div style="padding:18px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px;font-size:20px;color:var(--text);line-height:1.5;">
+      <span style="color:var(--acc);font-weight:700;flex-shrink:0;">✓</span>
+      <span>The island problem: blockchains can't talk to each other. Polkadot connects them.</span>
+    </div>
+    <div style="padding:18px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px;font-size:20px;color:var(--text);line-height:1.5;">
+      <span style="color:var(--acc);font-weight:700;flex-shrink:0;">✓</span>
+      <span>Shared security: parachains don't need their own validators — they use Polkadot's.</span>
+    </div>
+    <div style="padding:18px 0;display:flex;align-items:flex-start;gap:14px;font-size:20px;color:var(--text);line-height:1.5;">
+      <span style="color:var(--acc);font-weight:700;flex-shrink:0;">✓</span>
+      <span>DOT has three jobs: staking (security), governance (voting), bonding (parachain slots).</span>
+    </div>
+  </div>
+  <div class="r" style="--d:4;margin-top:36px;">
+    <span class="pill">UP NEXT</span>
+    <span style="font-size:15px;color:var(--muted);margin-left:12px;">Day 32: the Relay Chain — Polkadot's backbone, how validators work, and GRANDPA finality.</span>
+  </div>
+</div>
+
+</div></div>
+<div class="hud"><button id="prev">&#x2039;</button><span class="count"><b id="cur">01</b> / <span id="total">9</span></span><button id="next">&#x203A;</button><span class="sep"></span><button id="fs">⛶</button></div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen</div>
+<script>
+const slides=[...document.querySelectorAll(".slide")];const total=slides.length;let cur=0;document.getElementById("total").textContent=String(total).padStart(2,"0");function show(i){cur=Math.max(0,Math.min(total-1,i));slides.forEach((s,n)=>s.classList.toggle("active",n===cur));document.getElementById("cur").textContent=String(cur+1).padStart(2,"0");document.getElementById("progress").style.width=((cur+1)/total*100)+"%";location.hash=cur+1;}const next=()=>show(cur+1);const prev=()=>show(cur-1);document.addEventListener("keydown",e=>{if(["ArrowRight"," ","PageDown","Enter"].includes(e.key)){e.preventDefault();next();}else if(["ArrowLeft","PageUp","Backspace"].includes(e.key)){e.preventDefault();prev();}else if(e.key==="Home")show(0);else if(e.key==="End")show(total-1);else if(e.key.toLowerCase()==="f")toggleFs();});document.getElementById("next").onclick=next;document.getElementById("prev").onclick=prev;document.getElementById("fs").onclick=toggleFs;function toggleFs(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}const scaler=document.getElementById("scaler");function fit(){const sc=Math.min(window.innerWidth/1280,window.innerHeight/720);scaler.style.transform=`scale(${sc})`;}window.addEventListener("resize",fit);fit();setTimeout(()=>document.querySelector(".hint")?.classList.add("gone"),6000);window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.replace("#",""))||1;if(n-1!==cur)show(n-1);});show((parseInt(location.hash.replace("#",""))||1)-1);
+</script></body></html>

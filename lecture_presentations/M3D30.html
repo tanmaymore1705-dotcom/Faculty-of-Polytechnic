@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module 3 · Day 30 — Mini-Quiz 3 + Tiny Blockchain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0A0A0F;--surface:#111122;--card:#15152A;--border:#262640;--text:#E2E8F0;--text-br:#F1F5F9;--muted:#94A3B8;--dim:#64748B;--faint:#475569;--cyan:#00D4FF;--yellow:#FFD43B;--green:#34D399;--red:#F87171;--purple:#A78BFA;--orange:#F59E0B;--mono:'IBM Plex Mono',ui-monospace,monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;--disp:'Space Grotesk','IBM Plex Sans',sans-serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
+  body{background:#050507;color:var(--text);font-family:var(--sans);overflow:hidden;display:grid;place-items:center;-webkit-font-smoothing:antialiased;}
+  .scaler{transform-origin:center center;}
+  .stage{width:1280px;height:720px;position:relative;background:var(--bg);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);border-radius:10px;}
+  .slide{position:absolute;inset:0;padding:56px 64px 48px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s ease;}
+  .slide.active{opacity:1;visibility:visible;}
+  .slide.active .r{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0)*55ms);}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .eyebrow{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);}
+  .h-title{font-family:var(--disp);font-weight:700;color:var(--text-br);line-height:1.08;}
+  .lede{font-size:17px;color:var(--muted);line-height:1.55;max-width:62ch;}
+  .body-text{font-size:18px;color:var(--text);line-height:1.55;max-width:64ch;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;}
+  .card.accent{border-color:var(--orange);background:rgba(245,158,11,.05);}
+  .code{background:#0c0c14;border:1px solid var(--border);border-radius:9px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+  .cbar{display:flex;align-items:center;gap:7px;padding:9px 13px;border-bottom:1px solid var(--border);flex:0 0 auto;}
+  .cd{width:9px;height:9px;border-radius:50%;background:#5C5C7A;}
+  .cf{margin-left:8px;font-family:var(--mono);font-size:11.5px;color:var(--dim);}
+  .cpre{margin:0;padding:14px 16px;overflow:auto;flex:1 1 auto;}
+  .cpre code{font-family:var(--mono);font-size:15px;line-height:1.62;color:var(--text);white-space:pre;display:block;}
+  .kw{color:var(--cyan);}.bif{color:var(--yellow);}.num{color:#FFA657;}.str{color:var(--green);}.com{color:var(--dim);font-style:italic;}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--orange);width:0;z-index:50;transition:width .35s ease;box-shadow:0 0 10px var(--orange);}
+  .hud{position:fixed;bottom:18px;right:20px;z-index:50;display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:13px;color:var(--dim);background:rgba(17,17,34,.72);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:999px;padding:7px 14px;opacity:.5;transition:opacity .25s;}
+  .hud:hover{opacity:1;}
+  .hud button{all:unset;cursor:pointer;color:var(--muted);line-height:0;padding:3px 6px;border-radius:6px;transition:color .15s,background .15s;font-size:16px;}
+  .hud button:hover{color:var(--orange);background:rgba(245,158,11,.1);}
+  .hud .count b{color:var(--orange);}
+  .hud .sep{width:1px;height:16px;background:var(--border);}
+  .hint{position:fixed;bottom:18px;left:20px;z-index:50;font-family:var(--mono);font-size:11px;color:var(--faint);opacity:.7;transition:opacity .6s;}
+  .hint.gone{opacity:0;}
+  .day-tag{position:absolute;top:58px;right:72px;font-family:var(--mono);font-size:14px;color:var(--dim);letter-spacing:.18em;}
+  .footer{margin-top:auto;}
+  .callout{border-left:3px solid var(--orange);background:rgba(245,158,11,.06);padding:14px 18px;border-radius:6px;color:var(--text);font-size:15px;line-height:1.55;}
+  .callout b{color:var(--orange);}
+  .pill{display:inline-block;font-family:var(--mono);font-size:12px;background:rgba(245,158,11,.13);color:var(--orange);padding:3px 9px;border-radius:999px;letter-spacing:.06em;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+  .num-list{list-style:none;counter-reset:s;padding:0;}
+  .num-list li{counter-increment:s;padding:10px 0 10px 46px;position:relative;font-size:17px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);}
+  .num-list li:last-child{border-bottom:none;}
+  .num-list li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:10px;font-family:var(--mono);font-size:14px;color:var(--orange);font-weight:600;}
+  /* slide-1 grid bg */
+  .grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(245,158,11,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,.04) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;}
+  /* checklist */
+  .check-list{list-style:none;padding:0;}
+  .check-list li{font-size:20px;color:var(--text);padding:14px 0;border-bottom:1px solid var(--border);line-height:1.45;}
+  .check-list li:last-child{border-bottom:none;}
+  .check-list li span.ck{color:var(--green);font-weight:700;margin-right:10px;}
+  /* info boxes */
+  .info-boxes{display:flex;gap:14px;flex-wrap:wrap;}
+  .info-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-family:var(--mono);font-size:13px;color:var(--muted);}
+  .info-box b{color:var(--text-br);}
+  /* fn box */
+  .fn-box{border:1px solid var(--orange);background:rgba(245,158,11,.04);border-radius:8px;padding:14px 18px;}
+  .fn-name{font-family:var(--mono);font-size:15px;color:var(--yellow);font-weight:600;margin-bottom:6px;}
+  .fn-desc{font-size:14px;color:var(--muted);line-height:1.5;}
+  @media print{@page{size:1280px 720px;margin:0}body{display:block;overflow:visible}.scaler{transform:none!important}.stage{box-shadow:none;border-radius:0}.slide{position:relative;opacity:1!important;visibility:visible!important;page-break-after:always}.slide .r{animation:none!important}.hud,.hint,.progress{display:none!important}}
+</style></head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="scaler" id="scaler"><div class="stage" id="stage">
+
+<!-- SLIDE 1 · TITLE -->
+<div class="slide active" style="justify-content:center;">
+  <div class="grid-bg"></div>
+  <div class="day-tag r" style="--d:0">DAY 30 / 40</div>
+  <div style="max-width:840px;z-index:1;">
+    <div class="eyebrow r" style="--d:1;margin-bottom:18px;">&gt;&gt; Module 03 / Day 30 / Friday</div>
+    <h1 class="h-title r" style="--d:2;font-size:60px;margin-bottom:14px;">Quiz &amp; Tiny Blockchain</h1>
+    <p class="r" style="--d:3;font-size:34px;font-style:italic;color:var(--orange);margin-bottom:28px;font-family:var(--disp);">Mini-Quiz 3, then build and ship your chain</p>
+    <p class="lede r" style="--d:4;margin-bottom:36px;">End of Module 3. A 15-minute quiz to lock in blockchain concepts — then the most ambitious lab yet: your own complete blockchain in one file.</p>
+    <div class="info-boxes r" style="--d:5;">
+      <div class="info-box"><b>Quiz</b> / 15 min · 09:00–09:15</div>
+      <div class="info-box"><b>Lab</b> / 60 min · Complete Tiny Blockchain</div>
+      <div class="info-box"><b>Module</b> / M3 · Blockchain Basics</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 2 · AGENDA -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0;margin-bottom:6px;">&gt;&gt; Today's schedule</div>
+  <h2 class="h-title r" style="--d:1;font-size:42px;margin-bottom:22px;">Agenda</h2>
+  <ol class="num-list r" style="--d:2;flex:1;">
+    <li>Mini-Quiz 3 — 15 minutes (blockchain concepts + Python)</li>
+    <li>Quick recap of Module 3 (D21–D29)</li>
+    <li>Mini-project brief — what to build</li>
+    <li>Required functions and features</li>
+    <li>Lab — build it, test it, PR it</li>
+  </ol>
+</div>
+
+<!-- SLIDE 3 · MINI-QUIZ 3 -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0;margin-bottom:6px;">&gt;&gt; 09:00 – 09:15 · Mini-Quiz 3</div>
+  <h2 class="h-title r" style="--d:1;font-size:42px;margin-bottom:10px;">15 minutes · blockchain + Python</h2>
+  <p class="lede r" style="--d:2;margin-bottom:20px;">No computers. Covers the blockchain concepts and Python code from Days 21–29.</p>
+  <div class="grid-2 r" style="--d:3;flex:1;min-height:0;">
+    <div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:12px;">
+      <span class="pill" style="margin-bottom:4px;">WHAT'S ON IT</span>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:9px;">
+        <li style="font-size:15.5px;color:var(--text);line-height:1.5;">• Write <span style="font-family:var(--mono);color:var(--yellow);">hashlib.sha256()</span> — what does each step do?</li>
+        <li style="font-size:15.5px;color:var(--text);line-height:1.5;">• What are the two checks in <span style="font-family:var(--mono);color:var(--yellow);">is_valid_chain()</span>?</li>
+        <li style="font-size:15.5px;color:var(--text);line-height:1.5;">• Explain Proof of Work in one sentence</li>
+        <li style="font-size:15.5px;color:var(--text);line-height:1.5;">• What is the nonce and why do we change it?</li>
+      </ul>
+    </div>
+    <div class="card accent" style="padding:20px 22px;display:flex;flex-direction:column;gap:10px;">
+      <span class="pill" style="margin-bottom:4px;">SAMPLE QUESTION</span>
+      <div class="code" style="flex:1;min-height:0;">
+        <div class="cbar"><div class="cd"></div><div class="cd"></div><div class="cd"></div><span class="cf">quiz_sample.py</span></div>
+        <div class="cpre"><code>chain[<span class="num">2</span>][<span class="str">"data"</span>] = <span class="str">"tampered!"</span>
+<span class="com"># Question: After this line,</span>
+<span class="com"># what does is_valid_chain(chain) return</span>
+<span class="com"># and WHY?</span></code></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4 · MODULE 3 RECAP -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0;margin-bottom:6px;">&gt;&gt; The week in one glance · D21–D29</div>
+  <h2 class="h-title r" style="--d:1;font-size:40px;margin-bottom:20px;">Everything you built in Module 3</h2>
+  <div class="grid-2 r" style="--d:2;flex:1;min-height:0;">
+    <div class="card" style="padding:16px 20px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--orange);font-weight:600;letter-spacing:.1em;margin-bottom:8px;">D21–22 FOUNDATIONS</div>
+      <div style="font-size:15px;color:var(--text-br);font-weight:600;margin-bottom:6px;">Blockchain concept + <span style="font-family:var(--mono);color:var(--yellow);">hashlib.sha256()</span></div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.55;">The trust problem and its cryptographic solution.</div>
+    </div>
+    <div class="card" style="padding:16px 20px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--orange);font-weight:600;letter-spacing:.1em;margin-bottom:8px;">D23–24 STRUCTURE</div>
+      <div style="font-size:15px;color:var(--text-br);font-weight:600;margin-bottom:6px;"><span style="font-family:var(--mono);color:var(--yellow);">make_block()</span>, <span style="font-family:var(--mono);color:var(--yellow);">add_block()</span></div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.55;">A block is a dict; a chain is a list.</div>
+    </div>
+    <div class="card" style="padding:16px 20px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--orange);font-weight:600;letter-spacing:.1em;margin-bottom:8px;">D25–26 SECURITY</div>
+      <div style="font-size:15px;color:var(--text-br);font-weight:600;margin-bottom:6px;"><span style="font-family:var(--mono);color:var(--yellow);">is_valid_chain()</span>, <span style="font-family:var(--mono);color:var(--yellow);">mine_block()</span></div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.55;">Detecting and preventing tampering.</div>
+    </div>
+    <div class="card" style="padding:16px 20px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--orange);font-weight:600;letter-spacing:.1em;margin-bottom:8px;">D27–28 CONSENSUS + VALUE</div>
+      <div style="font-size:15px;color:var(--text-br);font-weight:600;margin-bottom:6px;"><span style="font-family:var(--mono);color:var(--yellow);">weighted_choice()</span> for NPoS simulation</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.55;">Transactions packed into blocks.</div>
+    </div>
+  </div>
+  <div class="callout footer r" style="--d:3;margin-top:16px;"><b>Today you combine all of it</b> into one clean, working blockchain file.</div>
+</div>
+
+<!-- SLIDE 5 · MINI-PROJECT BRIEF -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0;margin-bottom:6px;">&gt;&gt; 11:00 – 12:00 · Mini-project</div>
+  <h2 class="h-title r" style="--d:1;font-size:42px;margin-bottom:10px;">Build your Tiny Blockchain</h2>
+  <p class="lede r" style="--d:2;margin-bottom:22px;">One Python file. All the functions. Working end to end.</p>
+  <div class="grid-2 r" style="--d:3;flex:1;min-height:0;">
+    <div class="fn-box">
+      <div class="fn-name">hash_block(block)</div>
+      <div class="fn-desc">SHA-256 fingerprint of all block fields</div>
+    </div>
+    <div class="fn-box">
+      <div class="fn-name">make_block(index, transactions, previous_hash, nonce)</div>
+      <div class="fn-desc">Creates a valid block dict</div>
+    </div>
+    <div class="fn-box">
+      <div class="fn-name">mine_block(index, transactions, previous_hash, difficulty)</div>
+      <div class="fn-desc">Finds valid PoW nonce</div>
+    </div>
+    <div class="fn-box">
+      <div class="fn-name">is_valid_chain(chain)</div>
+      <div class="fn-desc">Returns True/False + error message</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6 · DEMO SCRIPT -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0;margin-bottom:6px;">&gt;&gt; Required output</div>
+  <h2 class="h-title r" style="--d:1;font-size:38px;margin-bottom:18px;">Your program must produce this output</h2>
+  <div class="code r" style="--d:2;flex:1;min-height:0;">
+    <div class="cbar"><div class="cd"></div><div class="cd"></div><div class="cd"></div><span class="cf">demo.py</span></div>
+    <div class="cpre"><code><span class="com"># When run, your file should:</span>
+chain = [<span class="bif">make_block</span>(<span class="num">0</span>, [], <span class="str">"0"</span> * <span class="num">64</span>)]   <span class="com"># genesis</span>
+
+<span class="bif">add_block</span>(chain, [{<span class="str">"from"</span>:<span class="str">"Alice"</span>,<span class="str">"to"</span>:<span class="str">"Bob"</span>,<span class="str">"amount"</span>:<span class="num">10</span>}])
+<span class="bif">add_block</span>(chain, [{<span class="str">"from"</span>:<span class="str">"Bob"</span>,<span class="str">"to"</span>:<span class="str">"Carol"</span>,<span class="str">"amount"</span>:<span class="num">4</span>}])
+<span class="bif">add_block</span>(chain, [{<span class="str">"from"</span>:<span class="str">"Alice"</span>,<span class="str">"to"</span>:<span class="str">"Dave"</span>,<span class="str">"amount"</span>:<span class="num">2</span>}])
+
+<span class="kw">for</span> b <span class="kw">in</span> chain:
+    <span class="bif">print</span>(f<span class="str">"Block {b['index']:2d} | nonce={b['nonce']:6d} "</span>
+          f<span class="str">"| hash={b['hash'][:16]}..."</span>)
+
+result, msg = <span class="bif">is_valid_chain</span>(chain)
+<span class="bif">print</span>(f<span class="str">"\nChain valid: {result} — {msg}"</span>)</code></div>
+  </div>
+  <div class="callout footer r" style="--d:3;margin-top:14px;"><b>Grading:</b> Does it run? Does it produce valid linked blocks? Does validation return True? That's the core requirement.</div>
+</div>
+
+<!-- SLIDE 7 · STRETCH GOALS -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0;margin-bottom:6px;">&gt;&gt; Going further</div>
+  <h2 class="h-title r" style="--d:1;font-size:40px;margin-bottom:22px;">Optional stretch goals</h2>
+  <div class="grid-2 r" style="--d:2;flex:1;min-height:0;">
+    <div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:12px;">
+      <span class="pill" style="margin-bottom:4px;">★ STRETCH 1</span>
+      <div style="font-size:20px;font-weight:600;color:var(--text-br);margin-bottom:4px;">CLI Menu</div>
+      <div style="font-size:15px;color:var(--muted);line-height:1.6;">Wrap your blockchain in a <span style="font-family:var(--mono);color:var(--cyan);">while True</span> menu: (1) Add block, (2) View chain, (3) Validate, (4) Quit. Use <span style="font-family:var(--mono);color:var(--yellow);">input()</span> for menu choices.</div>
+    </div>
+    <div class="card accent" style="padding:22px 24px;display:flex;flex-direction:column;gap:12px;">
+      <span class="pill" style="margin-bottom:4px;">★ STRETCH 2</span>
+      <div style="font-size:20px;font-weight:600;color:var(--text-br);margin-bottom:4px;">JSON Persistence</div>
+      <div style="font-size:15px;color:var(--muted);line-height:1.6;">Save the chain to <span style="font-family:var(--mono);color:var(--cyan);">chain.json</span> after every block. Load it at startup if the file exists. Your chain survives program restarts.</div>
+    </div>
+  </div>
+  <div class="callout footer r" style="--d:3;margin-top:16px;"><b>Stretch Award reminder:</b> 10+ stretch problems across the course earns recognition at the wrap-up. D30 counts as one — there are 2 options here.</div>
+</div>
+
+<!-- SLIDE 8 · RECAP -->
+<div class="slide" style="justify-content:center;padding:64px 80px;">
+  <div class="eyebrow r" style="--d:0;margin-bottom:18px;">&gt;&gt; End of Module 3 · Day 30</div>
+  <h2 class="h-title r" style="--d:1;font-size:52px;margin-bottom:32px;">You built a blockchain</h2>
+  <ul class="check-list r" style="--d:2;max-width:820px;">
+    <li><span class="ck">&#10003;</span> You understand hashing, blocks, chains, validation, PoW, PoS, and transactions.</li>
+    <li><span class="ck">&#10003;</span> You have a working tiny blockchain in Python — your portfolio piece.</li>
+    <li><span class="ck">&#10003;</span> You're ready to understand how Polkadot works — because it's the same ideas, production scale.</li>
+  </ul>
+  <div class="footer r" style="--d:3;margin-top:36px;display:flex;align-items:center;gap:12px;">
+    <span class="pill">UP NEXT</span>
+    <span style="font-size:16px;color:var(--muted);">Week 7 opens with <b style="color:var(--text-br);">Module 4: Polkadot Basics</b> on Day 31 — the real network behind the concepts you just built.</span>
+  </div>
+</div>
+
+</div></div>
+<div class="hud"><button id="prev">&#x2039;</button><span class="count"><b id="cur">01</b> / <span id="total">8</span></span><button id="next">&#x203A;</button><span class="sep"></span><button id="fs">⛶</button></div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen</div>
+<script>
+const slides=[...document.querySelectorAll(".slide")];const total=slides.length;let cur=0;document.getElementById("total").textContent=String(total).padStart(2,"0");function show(i){cur=Math.max(0,Math.min(total-1,i));slides.forEach((s,n)=>s.classList.toggle("active",n===cur));document.getElementById("cur").textContent=String(cur+1).padStart(2,"0");document.getElementById("progress").style.width=((cur+1)/total*100)+"%";location.hash=cur+1;}const next=()=>show(cur+1);const prev=()=>show(cur-1);document.addEventListener("keydown",e=>{if(["ArrowRight"," ","PageDown","Enter"].includes(e.key)){e.preventDefault();next();}else if(["ArrowLeft","PageUp","Backspace"].includes(e.key)){e.preventDefault();prev();}else if(e.key==="Home")show(0);else if(e.key==="End")show(total-1);else if(e.key.toLowerCase()==="f")toggleFs();});document.getElementById("next").onclick=next;document.getElementById("prev").onclick=prev;document.getElementById("fs").onclick=toggleFs;function toggleFs(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}const scaler=document.getElementById("scaler");function fit(){const sc=Math.min(window.innerWidth/1280,window.innerHeight/720);scaler.style.transform=`scale(${sc})`;}window.addEventListener("resize",fit);fit();setTimeout(()=>document.querySelector(".hint")?.classList.add("gone"),6000);window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.replace("#",""))||1;if(n-1!==cur)show(n-1);});show((parseInt(location.hash.replace("#",""))||1)-1);
+</script></body></html>

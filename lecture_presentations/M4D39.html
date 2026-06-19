@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module 4 · Day 39 — Final Mini-Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0A0A0F;--surface:#111122;--card:#15152A;--border:#262640;--text:#E2E8F0;--text-br:#F1F5F9;--muted:#94A3B8;--dim:#64748B;--faint:#475569;--cyan:#00D4FF;--yellow:#FFD43B;--green:#34D399;--red:#F87171;--purple:#A78BFA;--pink:#E6007A;--acc:var(--pink);--mono:'IBM Plex Mono',ui-monospace,monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;--disp:'Space Grotesk','IBM Plex Sans',sans-serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
+  body{background:#050507;color:var(--text);font-family:var(--sans);overflow:hidden;display:grid;place-items:center;-webkit-font-smoothing:antialiased;}
+  .scaler{transform-origin:center center;}
+  .stage{width:1280px;height:720px;position:relative;background:var(--bg);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);border-radius:10px;}
+  .slide{position:absolute;inset:0;padding:56px 64px 48px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s ease;}
+  .slide.active{opacity:1;visibility:visible;}
+  .slide.active .r{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0)*55ms);}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .eyebrow{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);}
+  .h-title{font-family:var(--disp);font-weight:700;color:var(--text-br);line-height:1.08;}
+  .lede{font-size:17px;color:var(--muted);line-height:1.55;max-width:62ch;}
+  .body-text{font-size:18px;color:var(--text);line-height:1.55;max-width:64ch;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;}
+  .card.accent{border-color:var(--acc);background:rgba(230,0,122,.05);}
+  .code{background:#0c0c14;border:1px solid var(--border);border-radius:9px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+  .cbar{display:flex;align-items:center;gap:7px;padding:9px 13px;border-bottom:1px solid var(--border);flex:0 0 auto;}
+  .cd{width:9px;height:9px;border-radius:50%;background:#5C5C7A;}
+  .cf{margin-left:8px;font-family:var(--mono);font-size:11.5px;color:var(--dim);}
+  .cpre{margin:0;padding:14px 16px;overflow:auto;flex:1 1 auto;}
+  .cpre code{font-family:var(--mono);font-size:15px;line-height:1.62;color:var(--text);white-space:pre;display:block;}
+  .kw{color:var(--cyan);}.bif{color:var(--yellow);}.num{color:#FFA657;}.str{color:var(--green);}.com{color:var(--dim);font-style:italic;}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--acc);width:0;z-index:50;transition:width .35s ease;box-shadow:0 0 10px var(--acc);}
+  .hud{position:fixed;bottom:18px;right:20px;z-index:50;display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:13px;color:var(--dim);background:rgba(17,17,34,.72);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:999px;padding:7px 14px;opacity:.5;transition:opacity .25s;}
+  .hud:hover{opacity:1;}
+  .hud button{all:unset;cursor:pointer;color:var(--muted);line-height:0;padding:3px 6px;border-radius:6px;transition:color .15s,background .15s;font-size:16px;}
+  .hud button:hover{color:var(--acc);background:rgba(230,0,122,.1);}
+  .hud .count b{color:var(--acc);}
+  .hud .sep{width:1px;height:16px;background:var(--border);}
+  .hint{position:fixed;bottom:18px;left:20px;z-index:50;font-family:var(--mono);font-size:11px;color:var(--faint);opacity:.7;transition:opacity .6s;}
+  .hint.gone{opacity:0;}
+  .day-tag{position:absolute;top:58px;right:72px;font-family:var(--mono);font-size:14px;color:var(--dim);letter-spacing:.18em;}
+  .footer{margin-top:auto;}
+  .callout{border-left:3px solid var(--acc);background:rgba(230,0,122,.06);padding:14px 18px;border-radius:6px;color:var(--text);font-size:15px;line-height:1.55;}
+  .callout b{color:var(--acc);}
+  .pill{display:inline-block;font-family:var(--mono);font-size:12px;background:rgba(230,0,122,.13);color:var(--acc);padding:3px 9px;border-radius:999px;letter-spacing:.06em;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+  .num-list{list-style:none;counter-reset:s;padding:0;}
+  .num-list li{counter-increment:s;padding:10px 0 10px 46px;position:relative;font-size:17px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);}
+  .num-list li:last-child{border-bottom:none;}
+  .num-list li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:10px;font-family:var(--mono);font-size:14px;color:var(--acc);font-weight:600;}
+  @media print{@page{size:1280px 720px;margin:0}body{display:block;overflow:visible}.scaler{transform:none!important}.stage{box-shadow:none;border-radius:0}.slide{position:relative;opacity:1!important;visibility:visible!important;page-break-after:always}.slide .r{animation:none!important}.hud,.hint,.progress{display:none!important}}
+</style></head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="scaler" id="scaler"><div class="stage" id="stage">
+
+<!-- SLIDE 1 — Title -->
+<section class="slide active" style="justify-content:center;padding:64px 72px;background:var(--bg);background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(230,0,122,.04) 39px,rgba(230,0,122,.04) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(230,0,122,.04) 39px,rgba(230,0,122,.04) 40px);">
+  <div class="day-tag r" style="--d:0;">DAY 39 / 40</div>
+  <div class="r eyebrow" style="--d:1;">&#62;&#62; Module 04 / Day 39 / Thursday</div>
+  <h1 class="r h-title" style="--d:2;font-size:70px;margin-top:18px;">Final Mini-Test</h1>
+  <p class="r" style="--d:3;font-size:36px;font-style:italic;color:var(--acc);margin-top:14px;font-family:var(--disp);">60 minutes · pen, paper, and Codespaces</p>
+  <p class="r lede" style="--d:4;margin-top:22px;">The last assessment. Two Python/blockchain coding problems and one Polkadot concept question. This is your chance to show everything you've learned in 39 days.</p>
+  <div class="r grid-3" style="--d:5;margin-top:36px;">
+    <div class="card" style="padding:20px 22px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);margin-bottom:6px;">Part A / 20 min</div>
+      <div style="font-size:16px;color:var(--text-br);font-weight:600;">Concept questions</div>
+    </div>
+    <div class="card accent" style="padding:20px 22px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);margin-bottom:6px;">Part B / 40 min</div>
+      <div style="font-size:16px;color:var(--text-br);font-weight:600;">Coding problems</div>
+    </div>
+    <div class="card" style="padding:20px 22px;">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);margin-bottom:6px;">Total / 60 min</div>
+      <div style="font-size:16px;color:var(--text-br);font-weight:600;">Full assessment</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2 — Exam structure -->
+<section class="slide" style="padding:56px 64px 48px;">
+  <div class="r eyebrow" style="--d:0;">&#62;&#62; Test structure</div>
+  <h2 class="r h-title" style="--d:1;font-size:44px;margin-top:12px;">Three parts — 60 minutes total</h2>
+  <div class="r grid-3" style="--d:2;margin-top:28px;flex:1;align-content:start;">
+    <div class="card" style="padding:26px;">
+      <div style="font-family:var(--mono);font-size:36px;font-weight:600;color:var(--acc);line-height:1;margin-bottom:12px;">20</div>
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">PART A — 20 MIN</div>
+      <div style="font-size:15px;color:var(--text-br);font-weight:600;margin-bottom:8px;">Concept questions</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;">Pen and paper. 5 short-answer questions covering blockchain concepts and Polkadot. No code required.</div>
+    </div>
+    <div class="card accent" style="padding:26px;">
+      <div style="font-family:var(--mono);font-size:36px;font-weight:600;color:var(--acc);line-height:1;margin-bottom:12px;">30</div>
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">PART B — 30 MIN</div>
+      <div style="font-size:15px;color:var(--text-br);font-weight:600;margin-bottom:8px;">Coding problems</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;">Codespaces. Two Python problems using blockchain code. Open your own files from Days 22–29 for reference — closed internet.</div>
+    </div>
+    <div class="card" style="padding:26px;">
+      <div style="font-family:var(--mono);font-size:36px;font-weight:600;color:var(--acc);line-height:1;margin-bottom:12px;">10</div>
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;">PART C — 10 MIN</div>
+      <div style="font-size:15px;color:var(--text-br);font-weight:600;margin-bottom:8px;">Reflection question</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;">Written answer. "Explain how our tiny blockchain relates to one specific thing you saw on Subscan."</div>
+    </div>
+  </div>
+  <div class="r footer" style="--d:3;margin-top:24px;">
+    <div class="callout"><b>Rules:</b> You may open your own code files from class. No Google, no GitHub, no external websites. Polkadot.js apps and Subscan are allowed — you may reference the live chain.</div>
+  </div>
+</section>
+
+<!-- SLIDE 3 — Part A -->
+<section class="slide" style="padding:56px 64px 48px;">
+  <div class="r eyebrow" style="--d:0;">&#62;&#62; Part A · Concepts (pen and paper)</div>
+  <h2 class="r h-title" style="--d:1;font-size:42px;margin-top:12px;">Sample questions — the format you'll see</h2>
+  <ul class="r num-list" style="--d:2;margin-top:26px;font-size:16px;">
+    <li>In one sentence: why does changing a block's data break the chain?</li>
+    <li>What are the TWO checks that <code style="font-family:var(--mono);font-size:15px;color:var(--yellow);">is_valid_chain()</code> performs?</li>
+    <li>What is a nonce? What do we do with it in Proof of Work?</li>
+    <li>Name ONE difference between Proof of Work and Proof of Stake.</li>
+    <li>In Polkadot, what is the difference between a validator and a nominator?</li>
+  </ul>
+  <div class="r footer" style="--d:3;margin-top:24px;">
+    <div class="callout"><b>These are representative — not the actual test questions.</b> If you can answer all five above confidently, you are ready.</div>
+  </div>
+</section>
+
+<!-- SLIDE 4 — Part B -->
+<section class="slide" style="padding:56px 64px 48px;">
+  <div class="r eyebrow" style="--d:0;">&#62;&#62; Part B · Coding (Codespaces)</div>
+  <h2 class="r h-title" style="--d:1;font-size:42px;margin-top:12px;">Sample coding problems — the format you'll see</h2>
+  <div class="r grid-2" style="--d:2;margin-top:24px;flex:1;align-content:start;">
+    <div class="card accent" style="padding:22px;">
+      <span class="pill" style="margin-bottom:14px;display:inline-block;">PROBLEM 1 — 15 MIN</span>
+      <p style="font-size:15px;color:var(--text);line-height:1.65;">Given the <code style="font-family:var(--mono);color:var(--yellow);">hash_block()</code> and <code style="font-family:var(--mono);color:var(--yellow);">make_block()</code> functions (provided in the starter file), build a chain of 3 blocks. The first block's data should be <code style="font-family:var(--mono);color:var(--green);">'Genesis'</code>. The second should be <code style="font-family:var(--mono);color:var(--green);">'Alice sends 10 DOT to Bob'</code>. The third: <code style="font-family:var(--mono);color:var(--green);">'Bob sends 4 DOT to Carol'</code>. Print the hash of each block.</p>
+    </div>
+    <div class="card" style="padding:22px;">
+      <span class="pill" style="margin-bottom:14px;display:inline-block;">PROBLEM 2 — 15 MIN</span>
+      <p style="font-size:15px;color:var(--text);line-height:1.65;">The chain below has been tampered with. Write <code style="font-family:var(--mono);color:var(--yellow);">is_valid_chain()</code> and use it to find which block is broken. Print: the index of the broken block, what check failed (hash integrity or chain link), and the two hash values that don't match.</p>
+    </div>
+  </div>
+  <div class="r footer" style="--d:3;margin-top:20px;">
+    <div class="callout"><b>Starter file provided.</b> You will have <code style="font-family:var(--mono);color:var(--yellow);">hash_block()</code> and <code style="font-family:var(--mono);color:var(--yellow);">make_block()</code> already written in the starter file — you only need to use them, not rewrite them from scratch.</div>
+  </div>
+</section>
+
+<!-- SLIDE 5 — Part C -->
+<section class="slide" style="padding:56px 64px 48px;">
+  <div class="r eyebrow" style="--d:0;">&#62;&#62; Part C · Reflection (written)</div>
+  <h2 class="r h-title" style="--d:1;font-size:42px;margin-top:12px;">One open-ended question — 10 minutes</h2>
+  <div class="r card accent" style="--d:2;padding:32px;margin-top:28px;flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:20px;font-weight:600;color:var(--text-br);font-family:var(--disp);margin-bottom:16px;">Reflection Question</div>
+    <p style="font-size:18px;color:var(--muted);line-height:1.65;">Open Subscan (<span style="font-family:var(--mono);color:var(--acc);">polkadot.subscan.io</span>) and find any block from the last hour. Choose one specific field from that block — for example, the Parent Hash, or one Extrinsic — and explain how it relates to something you built in your Python blockchain. Be specific: name the field, name the Python function or code line that does the same thing, and explain why they match.</p>
+  </div>
+  <div class="r footer" style="--d:3;margin-top:20px;">
+    <div class="callout"><b>There is no single correct answer.</b> We are looking for evidence that you can connect what you built in Python to the real production chain.</div>
+  </div>
+</section>
+
+<!-- SLIDE 6 — Time management -->
+<section class="slide" style="padding:56px 64px 48px;">
+  <div class="r eyebrow" style="--d:0;">&#62;&#62; Exam strategy</div>
+  <h2 class="r h-title" style="--d:1;font-size:40px;margin-top:12px;">60 minutes — use them well</h2>
+  <div class="r grid-3" style="--d:2;margin-top:28px;flex:1;align-content:start;">
+    <div class="card" style="padding:22px;">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--acc);font-weight:600;margin-bottom:10px;">0:00 – 0:20</div>
+      <div style="font-size:15px;color:var(--text-br);font-weight:600;margin-bottom:8px;">Part A first</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;">Five concept questions. ~4 minutes each. Write in full sentences — partial credit for partial understanding.</div>
+    </div>
+    <div class="card accent" style="padding:22px;">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--acc);font-weight:600;margin-bottom:10px;">0:20 – 0:50</div>
+      <div style="font-size:15px;color:var(--text-br);font-weight:600;margin-bottom:8px;">Part B coding</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;">15 minutes per problem. Read the problem fully before writing any code. Start with the function signature.</div>
+    </div>
+    <div class="card" style="padding:22px;">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--acc);font-weight:600;margin-bottom:10px;">0:50 – 1:00</div>
+      <div style="font-size:15px;color:var(--text-br);font-weight:600;margin-bottom:8px;">Part C reflection</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;">Open Subscan. Pick a block. Write your answer. Even a half-page answer is fine if it shows understanding.</div>
+    </div>
+  </div>
+  <div class="r footer" style="--d:3;margin-top:24px;">
+    <div class="callout"><b>If stuck on Part B:</b> write comments explaining what your code WOULD do, even if you can't get the syntax right. Comments showing correct reasoning earn partial credit.</div>
+  </div>
+</section>
+
+<!-- SLIDE 7 — Good luck -->
+<section class="slide" style="justify-content:center;padding:64px 80px;">
+  <div class="r eyebrow" style="--d:0;">&#62;&#62; Good luck</div>
+  <h2 class="r h-title" style="--d:1;font-size:54px;margin-top:18px;">39 days of work — one hour to show it</h2>
+  <p class="r body-text" style="--d:2;margin-top:24px;">You have built a working blockchain in Python from scratch. You understand hashing, blocks, chains, validation, mining, consensus, and Polkadot. That is not trivial knowledge.</p>
+  <ul class="r" style="--d:3;list-style:none;padding:0;margin-top:32px;">
+    <li style="padding:10px 0 10px 28px;position:relative;font-size:18px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);">
+      <span style="position:absolute;left:0;top:10px;color:var(--acc);font-weight:700;">→</span>
+      Your code files are your notes — use them.
+    </li>
+    <li style="padding:10px 0 10px 28px;position:relative;font-size:18px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);">
+      <span style="position:absolute;left:0;top:10px;color:var(--acc);font-weight:700;">→</span>
+      Subscan is allowed — the chain is your reference.
+    </li>
+    <li style="padding:10px 0 10px 28px;position:relative;font-size:18px;color:var(--text);line-height:1.55;">
+      <span style="position:absolute;left:0;top:10px;color:var(--acc);font-weight:700;">→</span>
+      One final day tomorrow — presentations and course wrap-up.
+    </li>
+  </ul>
+</section>
+
+</div></div>
+<div class="hud"><button id="prev">&#x2039;</button><span class="count"><b id="cur">01</b> / <span id="total">7</span></span><button id="next">&#x203A;</button><span class="sep"></span><button id="fs">⛶</button></div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen</div>
+<script>
+const slides=[...document.querySelectorAll(".slide")];const total=slides.length;let cur=0;document.getElementById("total").textContent=String(total).padStart(2,"0");function show(i){cur=Math.max(0,Math.min(total-1,i));slides.forEach((s,n)=>s.classList.toggle("active",n===cur));document.getElementById("cur").textContent=String(cur+1).padStart(2,"0");document.getElementById("progress").style.width=((cur+1)/total*100)+"%";location.hash=cur+1;}const next=()=>show(cur+1);const prev=()=>show(cur-1);document.addEventListener("keydown",e=>{if(["ArrowRight"," ","PageDown","Enter"].includes(e.key)){e.preventDefault();next();}else if(["ArrowLeft","PageUp","Backspace"].includes(e.key)){e.preventDefault();prev();}else if(e.key==="Home")show(0);else if(e.key==="End")show(total-1);else if(e.key.toLowerCase()==="f")toggleFs();});document.getElementById("next").onclick=next;document.getElementById("prev").onclick=prev;document.getElementById("fs").onclick=toggleFs;function toggleFs(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}const scaler=document.getElementById("scaler");function fit(){const sc=Math.min(window.innerWidth/1280,window.innerHeight/720);scaler.style.transform=`scale(${sc})`;}window.addEventListener("resize",fit);fit();setTimeout(()=>document.querySelector(".hint")?.classList.add("gone"),6000);window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.replace("#",""))||1;if(n-1!==cur)show(n-1);});show((parseInt(location.hash.replace("#",""))||1)-1);
+</script></body></html>

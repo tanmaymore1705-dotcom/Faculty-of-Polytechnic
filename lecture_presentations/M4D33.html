@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module 4 · Day 33 — Parachains</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0A0A0F;--surface:#111122;--card:#15152A;--border:#262640;--text:#E2E8F0;--text-br:#F1F5F9;--muted:#94A3B8;--dim:#64748B;--faint:#475569;--cyan:#00D4FF;--yellow:#FFD43B;--green:#34D399;--red:#F87171;--purple:#A78BFA;--pink:#E6007A;--acc:var(--pink);--mono:'IBM Plex Mono',ui-monospace,monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;--disp:'Space Grotesk','IBM Plex Sans',sans-serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
+  body{background:#050507;color:var(--text);font-family:var(--sans);overflow:hidden;display:grid;place-items:center;-webkit-font-smoothing:antialiased;}
+  .scaler{transform-origin:center center;}
+  .stage{width:1280px;height:720px;position:relative;background:var(--bg);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);border-radius:10px;}
+  .slide{position:absolute;inset:0;padding:56px 64px 48px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s ease;}
+  .slide.active{opacity:1;visibility:visible;}
+  .slide.active .r{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0)*55ms);}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .eyebrow{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);}
+  .h-title{font-family:var(--disp);font-weight:700;color:var(--text-br);line-height:1.08;}
+  .lede{font-size:17px;color:var(--muted);line-height:1.55;max-width:62ch;}
+  .body-text{font-size:18px;color:var(--text);line-height:1.55;max-width:64ch;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;}
+  .card.accent{border-color:var(--acc);background:rgba(230,0,122,.05);}
+  .code{background:#0c0c14;border:1px solid var(--border);border-radius:9px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+  .cbar{display:flex;align-items:center;gap:7px;padding:9px 13px;border-bottom:1px solid var(--border);flex:0 0 auto;}
+  .cd{width:9px;height:9px;border-radius:50%;background:#5C5C7A;}
+  .cf{margin-left:8px;font-family:var(--mono);font-size:11.5px;color:var(--dim);}
+  .cpre{margin:0;padding:14px 16px;overflow:auto;flex:1 1 auto;}
+  .cpre code{font-family:var(--mono);font-size:15px;line-height:1.62;color:var(--text);white-space:pre;display:block;}
+  .kw{color:var(--cyan);}.bif{color:var(--yellow);}.num{color:#FFA657;}.str{color:var(--green);}.com{color:var(--dim);font-style:italic;}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--acc);width:0;z-index:50;transition:width .35s ease;box-shadow:0 0 10px var(--acc);}
+  .hud{position:fixed;bottom:18px;right:20px;z-index:50;display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:13px;color:var(--dim);background:rgba(17,17,34,.72);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:999px;padding:7px 14px;opacity:.5;transition:opacity .25s;}
+  .hud:hover{opacity:1;}
+  .hud button{all:unset;cursor:pointer;color:var(--muted);line-height:0;padding:3px 6px;border-radius:6px;transition:color .15s,background .15s;font-size:16px;}
+  .hud button:hover{color:var(--acc);background:rgba(230,0,122,.1);}
+  .hud .count b{color:var(--acc);}
+  .hud .sep{width:1px;height:16px;background:var(--border);}
+  .hint{position:fixed;bottom:18px;left:20px;z-index:50;font-family:var(--mono);font-size:11px;color:var(--faint);opacity:.7;transition:opacity .6s;}
+  .hint.gone{opacity:0;}
+  .day-tag{position:absolute;top:58px;right:72px;font-family:var(--mono);font-size:14px;color:var(--dim);letter-spacing:.18em;}
+  .footer{margin-top:auto;}
+  .callout{border-left:3px solid var(--acc);background:rgba(230,0,122,.06);padding:14px 18px;border-radius:6px;color:var(--text);font-size:15px;line-height:1.55;}
+  .callout b{color:var(--acc);}
+  .pill{display:inline-block;font-family:var(--mono);font-size:12px;background:rgba(230,0,122,.13);color:var(--acc);padding:3px 9px;border-radius:999px;letter-spacing:.06em;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+  .num-list{list-style:none;counter-reset:s;padding:0;}
+  .num-list li{counter-increment:s;padding:10px 0 10px 46px;position:relative;font-size:17px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);}
+  .num-list li:last-child{border-bottom:none;}
+  .num-list li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:10px;font-family:var(--mono);font-size:14px;color:var(--acc);font-weight:600;}
+  .slide-1-bg{background:radial-gradient(ellipse 70% 60% at 80% 50%,rgba(230,0,122,.12) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 20% 80%,rgba(230,0,122,.06) 0%,transparent 60%);}
+  .check-list{list-style:none;padding:0;}
+  .check-list li{padding:12px 0 12px 36px;position:relative;font-size:20px;color:var(--text);line-height:1.5;border-bottom:1px solid var(--border);}
+  .check-list li:last-child{border-bottom:none;}
+  .check-list li::before{content:'✓';position:absolute;left:0;top:12px;font-size:16px;color:var(--acc);font-weight:700;}
+  .cmp-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:14px;}
+  .cmp-table th{background:rgba(230,0,122,.18);color:var(--acc);padding:10px 14px;text-align:left;letter-spacing:.08em;border-bottom:2px solid var(--acc);}
+  .cmp-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);}
+  .cmp-table tr:last-child td{border-bottom:none;}
+  .cmp-table td:first-child{color:var(--muted);}
+  @media print{@page{size:1280px 720px;margin:0}body{display:block;overflow:visible}.scaler{transform:none!important}.stage{box-shadow:none;border-radius:0}.slide{position:relative;opacity:1!important;visibility:visible!important;page-break-after:always}.slide .r{animation:none!important}.hud,.hint,.progress{display:none!important}}
+</style></head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="scaler" id="scaler"><div class="stage" id="stage">
+
+<!-- SLIDE 1: TITLE -->
+<div class="slide slide-1-bg active">
+  <div class="day-tag r" style="--d:0">DAY 33 / 40</div>
+  <div style="display:flex;flex-direction:column;justify-content:center;height:100%;gap:24px;">
+    <div class="eyebrow r" style="--d:1">&gt;&gt; Module 04 / Day 33 / Lecture</div>
+    <h1 class="h-title r" style="--d:2;font-size:72px;">Parachains</h1>
+    <div class="r" style="--d:3;font-size:38px;font-style:italic;color:var(--acc);font-family:var(--disp);font-weight:600;line-height:1.2;">Parallel blockchains — specialized and connected</div>
+    <p class="body-text r" style="--d:4;max-width:68ch;">The relay chain provides the security. Parachains provide the functionality. Today we meet the chains actually doing the work in the Polkadot ecosystem.</p>
+    <div class="r" style="--d:5;display:flex;gap:24px;align-items:center;margin-top:8px;">
+      <span class="pill">Lecture 75 min</span>
+      <span style="font-family:var(--mono);font-size:13px;color:var(--dim);">Lab 60 min · Explore parachains on Subscan</span>
+      <span style="font-family:var(--mono);font-size:13px;color:var(--faint);">M4 · Polkadot Basics</span>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 2: AGENDA -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0">&gt;&gt; Today's Agenda</div>
+  <h2 class="h-title r" style="--d:1;font-size:40px;margin-top:12px;margin-bottom:28px;">What we cover today</h2>
+  <ol class="num-list r" style="--d:2">
+    <li>What is a parachain? — the specialized chain concept</li>
+    <li>How parachains connect to the relay chain</li>
+    <li>Collators — the parachain's own nodes</li>
+    <li>Real parachains — Moonbeam, Astar, Acala</li>
+    <li>Coretime — how parachains pay for access</li>
+    <li>Lab — find a parachain on Subscan</li>
+  </ol>
+</div>
+
+<!-- SLIDE 3: WHAT IS A PARACHAIN -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0">&gt;&gt; 01 / 04 · The concept</div>
+  <h2 class="h-title r" style="--d:1;font-size:40px;margin-top:10px;margin-bottom:14px;">A parachain is a blockchain with a superpower</h2>
+  <p class="body-text r" style="--d:2;margin-bottom:16px;">A parachain is a full blockchain — it has its own tokens, its own rules, its own smart contracts. The superpower: it connects to the Polkadot relay chain, which means it gets Polkadot's validators to finalize its blocks. It doesn't need its own validator set.</p>
+  <div class="callout r" style="--d:3;margin-bottom:20px;"><b>The analogy:</b> The relay chain is a country's military. Parachains are cities in that country. Each city governs itself — but they all share the country's military for defense. A small city doesn't need to maintain its own army.</div>
+  <div class="grid-2 r" style="--d:4;flex:1;">
+    <div class="card" style="padding:20px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.14em;margin-bottom:10px;">STANDALONE CHAIN</div>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:7px;">
+        <li style="font-size:14px;color:var(--muted);">Has its own validators</li>
+        <li style="font-size:14px;color:var(--muted);">Needs to recruit and fund them</li>
+        <li style="font-size:14px;color:var(--muted);">Vulnerable if small</li>
+        <li style="font-size:14px;color:var(--muted);">All security cost on you</li>
+      </ul>
+    </div>
+    <div class="card accent" style="padding:20px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--acc);letter-spacing:.14em;margin-bottom:10px;">PARACHAIN</div>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:7px;">
+        <li style="font-size:14px;color:var(--text);">Uses Polkadot's validators</li>
+        <li style="font-size:14px;color:var(--text);">Zero security setup cost</li>
+        <li style="font-size:14px;color:var(--text);">Protected by full DOT stake</li>
+        <li style="font-size:14px;color:var(--text);">Can focus entirely on building useful features</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: HOW PARACHAINS CONNECT -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0">&gt;&gt; 02 / 04 · The connection</div>
+  <h2 class="h-title r" style="--d:1;font-size:40px;margin-top:10px;margin-bottom:10px;">Collators, validators, and the proof</h2>
+  <p class="lede r" style="--d:2;margin-bottom:20px;">Parachains have their own node type — Collators. They build parachain blocks and submit a proof to the relay chain validators, who verify and finalize them.</p>
+  <div class="grid-3 r" style="--d:3;margin-bottom:18px;">
+    <div class="card" style="padding:22px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;margin-bottom:10px;">01 COLLATOR BUILDS</div>
+      <p style="font-size:14px;color:var(--text);line-height:1.55;">The collator assembles parachain transactions into a block and creates a Proof of Validity (PoV).</p>
+    </div>
+    <div class="card accent" style="padding:22px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--acc);letter-spacing:.14em;margin-bottom:10px;">02 VALIDATOR CHECKS</div>
+      <p style="font-size:14px;color:var(--text);line-height:1.55;">A subset of relay chain validators verifies the PoV. They check signatures and state transitions.</p>
+    </div>
+    <div class="card" style="padding:22px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;margin-bottom:10px;">03 RELAY CHAIN FINALIZES</div>
+      <p style="font-size:14px;color:var(--text);line-height:1.55;">The block is included in the relay chain. GRANDPA finalizes it. Now it's irreversible.</p>
+    </div>
+  </div>
+  <div class="callout r" style="--d:4"><b>Collators vs validators:</b> Collators are parachain-specific and don't need to stake DOT. Validators are relay chain nodes with large DOT stakes. Different roles, different requirements.</div>
+</div>
+
+<!-- SLIDE 5: REAL PARACHAINS -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0">&gt;&gt; 03 / 04 · The ecosystem</div>
+  <h2 class="h-title r" style="--d:1;font-size:40px;margin-top:10px;margin-bottom:16px;">Who's building on Polkadot right now?</h2>
+  <div class="grid-2 r" style="--d:2;margin-bottom:18px;">
+    <div class="card" style="padding:18px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.14em;margin-bottom:8px;">MOONBEAM <span style="color:var(--faint);">· GLMR</span></div>
+      <p style="font-size:14px;color:var(--text);line-height:1.55;">Smart contracts compatible with Ethereum (EVM). Developers can deploy Solidity contracts without changes.</p>
+    </div>
+    <div class="card accent" style="padding:18px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--acc);letter-spacing:.14em;margin-bottom:8px;">ASTAR <span style="color:var(--faint);">· ASTR</span></div>
+      <p style="font-size:14px;color:var(--text);line-height:1.55;">Smart contracts hub — supports both EVM and WASM. Becoming the dApp layer for Polkadot.</p>
+    </div>
+    <div class="card" style="padding:18px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.14em;margin-bottom:8px;">ACALA <span style="color:var(--faint);">· ACA</span></div>
+      <p style="font-size:14px;color:var(--text);line-height:1.55;">DeFi hub — decentralised exchange, stablecoin (aUSD), liquid staking. The "DeFi backbone" of Polkadot.</p>
+    </div>
+    <div class="card" style="padding:18px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.14em;margin-bottom:8px;">PHALA NETWORK <span style="color:var(--faint);">· PHA</span></div>
+      <p style="font-size:14px;color:var(--text);line-height:1.55;">Privacy-preserving cloud computing using TEEs (Trusted Execution Environments).</p>
+    </div>
+  </div>
+  <div class="callout r" style="--d:3"><b>Explore more:</b> Visit parachains.info to see all active parachains, their block time, number of holders, and recent activity.</div>
+</div>
+
+<!-- SLIDE 6: CORETIME -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0">&gt;&gt; 04 / 04 · Access model</div>
+  <h2 class="h-title r" style="--d:1;font-size:38px;margin-top:10px;margin-bottom:20px;">How parachains pay for relay chain access</h2>
+  <div class="grid-2 r" style="--d:2;flex:1;margin-bottom:18px;">
+    <div class="card" style="padding:28px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.14em;margin-bottom:14px;">OLD MODEL: SLOT AUCTIONS</div>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:9px;">
+        <li style="font-size:15px;color:var(--muted);">Teams bid DOT in 2-year slot auctions</li>
+        <li style="font-size:15px;color:var(--muted);">Only ~50 slots available</li>
+        <li style="font-size:15px;color:var(--muted);">Winners lock up millions of DOT</li>
+        <li style="font-size:15px;color:var(--red);">Expensive and inflexible</li>
+      </ul>
+    </div>
+    <div class="card accent" style="padding:28px;">
+      <div style="font-family:var(--mono);font-size:12px;color:var(--acc);letter-spacing:.14em;margin-bottom:14px;">NEW MODEL: CORETIME (2024+)</div>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:9px;">
+        <li style="font-size:15px;color:var(--text);">Teams buy "Coretime" — compute time on the relay chain</li>
+        <li style="font-size:15px;color:var(--text);">Like buying cloud credits</li>
+        <li style="font-size:15px;color:var(--text);">Pay for what you need</li>
+        <li style="font-size:15px;color:var(--green);">A weekend hackathon project can rent coretime for a few days</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout r" style="--d:3"><b>Why this matters:</b> Coretime makes Polkadot accessible to small teams and experiments. You don't need millions of DOT to try building a parachain. The ecosystem is more open.</div>
+</div>
+
+<!-- SLIDE 7: POLKADOT VS ETHEREUM -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0">&gt;&gt; Big picture</div>
+  <h2 class="h-title r" style="--d:1;font-size:40px;margin-top:10px;margin-bottom:20px;">Polkadot vs Ethereum — different visions</h2>
+  <div class="r" style="--d:2;flex:1;margin-bottom:18px;">
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>Aspect</th>
+          <th>Ethereum</th>
+          <th>Polkadot</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Application layer</td>
+          <td>Smart contracts on one chain</td>
+          <td>Entire parachains, each specialized</td>
+        </tr>
+        <tr>
+          <td>Scaling</td>
+          <td>Layer 2 rollups (Optimism, Arbitrum)</td>
+          <td>Multiple parachains in parallel</td>
+        </tr>
+        <tr>
+          <td>Communication</td>
+          <td>Bridges (complex, often hacked)</td>
+          <td>Native XCM between parachains</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout r" style="--d:3"><b>Neither is "better."</b> Ethereum has a larger developer ecosystem. Polkadot has more architectural flexibility. Many projects bridge both.</div>
+</div>
+
+<!-- SLIDE 8: LAB -->
+<div class="slide">
+  <div class="eyebrow r" style="--d:0">&gt;&gt; 11:00 – 12:00 · Lab</div>
+  <h2 class="h-title r" style="--d:1;font-size:42px;margin-top:10px;margin-bottom:20px;">Today's lab — Parachain Explorer</h2>
+  <div class="grid-2 r" style="--d:2;flex:1;margin-bottom:18px;">
+    <div class="card" style="padding:24px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span class="pill">CORE</span>
+        <span style="font-family:var(--mono);font-size:13px;color:var(--muted);">Find a parachain</span>
+      </div>
+      <p style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:10px;">Go to parachains.info. Pick one parachain you find interesting. For it, find:</p>
+      <ol style="list-style:decimal;padding-left:18px;display:flex;flex-direction:column;gap:6px;">
+        <li style="font-size:14px;color:var(--muted);">Its purpose</li>
+        <li style="font-size:14px;color:var(--muted);">Its native token</li>
+        <li style="font-size:14px;color:var(--muted);">Its current block number on Subscan</li>
+        <li style="font-size:14px;color:var(--muted);">One real project or dApp built on it</li>
+      </ol>
+    </div>
+    <div class="card accent" style="padding:24px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-family:var(--mono);font-size:13px;color:var(--acc);">★ STRETCH</span>
+        <span style="font-family:var(--mono);font-size:13px;color:var(--muted);">Three parachains</span>
+      </div>
+      <p style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:10px;">Repeat for 3 different parachains. Find one from:</p>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:7px;">
+        <li style="font-size:14px;color:var(--muted);">DeFi</li>
+        <li style="font-size:14px;color:var(--muted);">Gaming / NFTs</li>
+        <li style="font-size:14px;color:var(--muted);">Infrastructure</li>
+      </ul>
+      <p style="font-size:13px;color:var(--dim);margin-top:10px;">Write a 2-sentence summary of each.</p>
+    </div>
+  </div>
+  <div class="callout r" style="--d:3"><b>How to submit.</b> Create <code style="font-family:var(--mono);color:var(--acc);">students/&lt;username&gt;/D33_parachains.py</code> with findings as Python comments. PR before 12:00.</div>
+</div>
+
+<!-- SLIDE 9: RECAP -->
+<div class="slide">
+  <div style="display:flex;flex-direction:column;justify-content:center;height:100%;padding:0 16px;gap:28px;">
+    <div class="eyebrow r" style="--d:0">&gt;&gt; End of Day 33</div>
+    <h2 class="h-title r" style="--d:1;font-size:52px;">Parachains in three sentences</h2>
+    <ul class="check-list r" style="--d:2">
+      <li>A parachain is a full blockchain that connects to Polkadot's relay chain for shared security.</li>
+      <li>Collators build blocks; relay chain validators finalize them. No separate validator set needed.</li>
+      <li>Real parachains today: Moonbeam (EVM), Astar (smart contracts), Acala (DeFi), and 40+ others.</li>
+    </ul>
+    <div class="footer r" style="--d:3;margin-top:16px;">
+      <span class="pill">UP NEXT</span>
+      <span style="font-family:var(--mono);font-size:13px;color:var(--dim);margin-left:10px;">Day 34: DOT token deep dive — staking, governance, OpenGov, and how you participate.</span>
+    </div>
+  </div>
+</div>
+
+</div></div>
+<div class="hud"><button id="prev">&#x2039;</button><span class="count"><b id="cur">01</b> / <span id="total">9</span></span><button id="next">&#x203A;</button><span class="sep"></span><button id="fs">⛶</button></div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen</div>
+<script>
+const slides=[...document.querySelectorAll(".slide")];const total=slides.length;let cur=0;document.getElementById("total").textContent=String(total).padStart(2,"0");function show(i){cur=Math.max(0,Math.min(total-1,i));slides.forEach((s,n)=>s.classList.toggle("active",n===cur));document.getElementById("cur").textContent=String(cur+1).padStart(2,"0");document.getElementById("progress").style.width=((cur+1)/total*100)+"%";location.hash=cur+1;}const next=()=>show(cur+1);const prev=()=>show(cur-1);document.addEventListener("keydown",e=>{if(["ArrowRight"," ","PageDown","Enter"].includes(e.key)){e.preventDefault();next();}else if(["ArrowLeft","PageUp","Backspace"].includes(e.key)){e.preventDefault();prev();}else if(e.key==="Home")show(0);else if(e.key==="End")show(total-1);else if(e.key.toLowerCase()==="f")toggleFs();});document.getElementById("next").onclick=next;document.getElementById("prev").onclick=prev;document.getElementById("fs").onclick=toggleFs;function toggleFs(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}const scaler=document.getElementById("scaler");function fit(){const sc=Math.min(window.innerWidth/1280,window.innerHeight/720);scaler.style.transform=`scale(${sc})`;}window.addEventListener("resize",fit);fit();setTimeout(()=>document.querySelector(".hint")?.classList.add("gone"),6000);window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.replace("#",""))||1;if(n-1!==cur)show(n-1);});show((parseInt(location.hash.replace("#",""))||1)-1);
+</script></body></html>

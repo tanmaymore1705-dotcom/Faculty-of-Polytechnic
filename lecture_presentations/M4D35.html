@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module 4 · Day 35 — NPoS Deep Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0A0A0F;--surface:#111122;--card:#15152A;--border:#262640;--text:#E2E8F0;--text-br:#F1F5F9;--muted:#94A3B8;--dim:#64748B;--faint:#475569;--cyan:#00D4FF;--yellow:#FFD43B;--green:#34D399;--red:#F87171;--purple:#A78BFA;--pink:#E6007A;--acc:var(--pink);--mono:'IBM Plex Mono',ui-monospace,monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;--disp:'Space Grotesk','IBM Plex Sans',sans-serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
+  body{background:#050507;color:var(--text);font-family:var(--sans);overflow:hidden;display:grid;place-items:center;-webkit-font-smoothing:antialiased;}
+  .scaler{transform-origin:center center;}
+  .stage{width:1280px;height:720px;position:relative;background:var(--bg);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);border-radius:10px;}
+  .slide{position:absolute;inset:0;padding:56px 64px 48px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s ease;}
+  .slide.active{opacity:1;visibility:visible;}
+  .slide.active .r{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0)*55ms);}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .eyebrow{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);}
+  .h-title{font-family:var(--disp);font-weight:700;color:var(--text-br);line-height:1.08;}
+  .lede{font-size:17px;color:var(--muted);line-height:1.55;max-width:62ch;}
+  .body-text{font-size:18px;color:var(--text);line-height:1.55;max-width:64ch;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;}
+  .card.accent{border-color:var(--acc);background:rgba(230,0,122,.05);}
+  .code{background:#0c0c14;border:1px solid var(--border);border-radius:9px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+  .cbar{display:flex;align-items:center;gap:7px;padding:9px 13px;border-bottom:1px solid var(--border);flex:0 0 auto;}
+  .cd{width:9px;height:9px;border-radius:50%;background:#5C5C7A;}
+  .cf{margin-left:8px;font-family:var(--mono);font-size:11.5px;color:var(--dim);}
+  .cpre{margin:0;padding:14px 16px;overflow:auto;flex:1 1 auto;}
+  .cpre code{font-family:var(--mono);font-size:15px;line-height:1.62;color:var(--text);white-space:pre;display:block;}
+  .kw{color:var(--cyan);}.bif{color:var(--yellow);}.num{color:#FFA657;}.str{color:var(--green);}.com{color:var(--dim);font-style:italic;}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--acc);width:0;z-index:50;transition:width .35s ease;box-shadow:0 0 10px var(--acc);}
+  .hud{position:fixed;bottom:18px;right:20px;z-index:50;display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:13px;color:var(--dim);background:rgba(17,17,34,.72);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:999px;padding:7px 14px;opacity:.5;transition:opacity .25s;}
+  .hud:hover{opacity:1;}
+  .hud button{all:unset;cursor:pointer;color:var(--muted);line-height:0;padding:3px 6px;border-radius:6px;transition:color .15s,background .15s;font-size:16px;}
+  .hud button:hover{color:var(--acc);background:rgba(230,0,122,.1);}
+  .hud .count b{color:var(--acc);}
+  .hud .sep{width:1px;height:16px;background:var(--border);}
+  .hint{position:fixed;bottom:18px;left:20px;z-index:50;font-family:var(--mono);font-size:11px;color:var(--faint);opacity:.7;transition:opacity .6s;}
+  .hint.gone{opacity:0;}
+  .day-tag{position:absolute;top:58px;right:72px;font-family:var(--mono);font-size:14px;color:var(--dim);letter-spacing:.18em;}
+  .footer{margin-top:auto;}
+  .callout{border-left:3px solid var(--acc);background:rgba(230,0,122,.06);padding:14px 18px;border-radius:6px;color:var(--text);font-size:15px;line-height:1.55;}
+  .callout b{color:var(--acc);}
+  .pill{display:inline-block;font-family:var(--mono);font-size:12px;background:rgba(230,0,122,.13);color:var(--acc);padding:3px 9px;border-radius:999px;letter-spacing:.06em;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+  .num-list{list-style:none;counter-reset:s;padding:0;}
+  .num-list li{counter-increment:s;padding:10px 0 10px 46px;position:relative;font-size:17px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);}
+  .num-list li:last-child{border-bottom:none;}
+  .num-list li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:10px;font-family:var(--mono);font-size:14px;color:var(--acc);font-weight:600;}
+  .tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:14px;}
+  .tbl th{background:rgba(230,0,122,.15);color:var(--acc);padding:10px 14px;text-align:left;font-weight:600;letter-spacing:.08em;}
+  .tbl td{padding:10px 14px;color:var(--text);border-bottom:1px solid var(--border);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .flow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .flow-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:14px;color:var(--text);font-family:var(--mono);text-align:center;flex:1;}
+  .flow-box.accent{border-color:var(--acc);background:rgba(230,0,122,.05);color:var(--acc);}
+  .flow-arr{color:var(--acc);font-size:20px;flex-shrink:0;}
+  .chk-list{list-style:none;padding:0;}
+  .chk-list li{padding:12px 0 12px 0;font-size:20px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:flex-start;}
+  .chk-list li:last-child{border-bottom:none;}
+  .chk-list li .chk{color:var(--acc);font-size:20px;flex-shrink:0;margin-top:1px;}
+  .grid-bg{background-image:linear-gradient(rgba(230,0,122,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(230,0,122,.04) 1px,transparent 1px);background-size:40px 40px;}
+  @media print{@page{size:1280px 720px;margin:0}body{display:block;overflow:visible}.scaler{transform:none!important}.stage{box-shadow:none;border-radius:0}.slide{position:relative;opacity:1!important;visibility:visible!important;page-break-after:always}.slide .r{animation:none!important}.hud,.hint,.progress{display:none!important}}
+</style></head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="scaler" id="scaler"><div class="stage" id="stage">
+
+<!-- SLIDE 1: TITLE -->
+<div class="slide grid-bg" id="s1">
+  <div class="day-tag r" style="--d:0">DAY 35 / 40</div>
+  <div style="display:flex;flex-direction:column;justify-content:center;height:100%;gap:28px;">
+    <div class="eyebrow r" style="--d:1">&gt;&gt; Module 04 / Day 35 / Lecture</div>
+    <h1 class="h-title r" style="--d:2;font-size:72px;">NPoS Deep Dive</h1>
+    <div class="r" style="--d:3;font-size:36px;font-style:italic;color:var(--acc);line-height:1.2;">How Polkadot actually chooses its validators</div>
+    <p class="lede r" style="--d:4;max-width:70ch;">On Day 27 you wrote <span style="font-family:var(--mono);color:var(--yellow);">weighted_choice()</span> to simulate validator selection. Today you see how Polkadot's real NPoS election works — and why it's designed the way it is.</p>
+    <div class="r" style="--d:5;display:flex;gap:24px;flex-wrap:wrap;margin-top:8px;">
+      <span style="font-family:var(--mono);font-size:13px;color:var(--dim);">Lecture 75 min</span>
+      <span style="color:var(--border);">|</span>
+      <span style="font-family:var(--mono);font-size:13px;color:var(--dim);">Lab 60 min · Research validators on Polkadot.js</span>
+      <span style="color:var(--border);">|</span>
+      <span style="font-family:var(--mono);font-size:13px;color:var(--acc);">M4 · Polkadot Basics</span>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 2: AGENDA -->
+<div class="slide" id="s2">
+  <div class="day-tag r" style="--d:0">DAY 35 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:12px;">&gt;&gt; Today's agenda</div>
+  <h2 class="h-title r" style="--d:2;font-size:42px;margin-bottom:28px;">What we'll cover</h2>
+  <ol class="num-list r" style="--d:3;">
+    <li>Recap: what <span style="font-family:var(--mono);color:var(--yellow);">weighted_choice()</span> modelled</li>
+    <li>Validators and nominators — roles revisited</li>
+    <li>The NPoS election algorithm — balancing stake</li>
+    <li>Rewards — how they flow from validators to nominators</li>
+    <li>Slashing — the punishment system in detail</li>
+    <li>Lab — find a validator and count its nominators</li>
+  </ol>
+</div>
+
+<!-- SLIDE 3: RECAP -->
+<div class="slide" id="s3">
+  <div class="day-tag r" style="--d:0">DAY 35 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; Where we left off</div>
+  <h2 class="h-title r" style="--d:2;font-size:40px;margin-bottom:22px;">You already built a model of this</h2>
+  <div class="code r" style="--d:3;flex:1 1 auto;min-height:0;">
+    <div class="cbar"><div class="cd"></div><div class="cd"></div><div class="cd"></div><span class="cf">pos_review.py</span></div>
+    <div class="cpre"><code><span class="com"># Day 27 — your weighted validator selection</span>
+validators = {
+    <span class="str">"Alice"</span>:  <span class="num">5000</span>,   <span class="com"># DOT staked</span>
+    <span class="str">"Bob"</span>:    <span class="num">3000</span>,
+    <span class="str">"Carol"</span>:  <span class="num">8000</span>,
+    <span class="str">"Dave"</span>:   <span class="num">2000</span>,
+}
+
+<span class="kw">def</span> <span class="bif">weighted_choice</span>(validators):
+    total = <span class="bif">sum</span>(validators.values())
+    r = random.uniform(<span class="num">0</span>, total)
+    cumulative = <span class="num">0</span>
+    <span class="kw">for</span> name, stake <span class="kw">in</span> validators.items():
+        cumulative += stake
+        <span class="kw">if</span> r &lt;= cumulative:
+            <span class="kw">return</span> name</code></div>
+  </div>
+  <div class="callout r footer" style="--d:4;margin-top:18px;"><b>This is the NPoS core idea.</b> Higher stake = higher probability of selection. Real Polkadot uses a more sophisticated algorithm (Phragmén/Phragmms) to balance stake distribution across the active set, but your model captures the essence.</div>
+</div>
+
+<!-- SLIDE 4: TWO ROLES -->
+<div class="slide" id="s4">
+  <div class="day-tag r" style="--d:0">DAY 35 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 01 / 03 · The participants</div>
+  <h2 class="h-title r" style="--d:2;font-size:40px;margin-bottom:22px;">Validators and nominators — different jobs</h2>
+  <div class="grid-2 r" style="--d:3;flex:1 1 auto;">
+    <div class="card accent" style="padding:28px;display:flex;flex-direction:column;gap:14px;">
+      <div style="font-family:var(--mono);font-size:15px;color:var(--acc);font-weight:600;letter-spacing:.1em;">VALIDATORS</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;"><b style="color:var(--text);">Responsibilities:</b><br>Run a full node 24/7, produce relay chain blocks, verify parachain proofs, participate in GRANDPA finality voting.</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;"><b style="color:var(--text);">Requirements:</b><br>Technical expertise, high uptime, large self-stake.</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--acc);background:rgba(230,0,122,.1);padding:8px 12px;border-radius:6px;">Active set: ~300 at a time</div>
+    </div>
+    <div class="card" style="padding:28px;display:flex;flex-direction:column;gap:14px;">
+      <div style="font-family:var(--mono);font-size:15px;color:var(--acc);font-weight:600;letter-spacing:.1em;">NOMINATORS</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;"><b style="color:var(--text);">Responsibilities:</b><br>Research validators, bond DOT behind trustworthy ones (up to 16).</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6;"><b style="color:var(--text);">Requirements:</b><br>No technical setup, minimum ~250 DOT to nominate.</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--dim);background:rgba(255,255,255,.04);padding:8px 12px;border-radius:6px;">~50,000+ nominators currently backing the validator set</div>
+    </div>
+  </div>
+  <div class="callout r footer" style="--d:4;margin-top:18px;"><b>Risk is shared.</b> If your nominated validator gets slashed, you lose a proportional share of your stake. Choose validators with good uptime and reasonable commission.</div>
+</div>
+
+<!-- SLIDE 5: ELECTION ALGORITHM -->
+<div class="slide" id="s5">
+  <div class="day-tag r" style="--d:0">DAY 35 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 02 / 03 · The election</div>
+  <h2 class="h-title r" style="--d:2;font-size:38px;margin-bottom:14px;">Why Polkadot balances stake — not just picks the richest</h2>
+  <p class="lede r" style="--d:3;margin-bottom:20px;">A naive system would just pick the validators with the most DOT staked. Problem: 10 validators with 90% of all stake means huge centralisation. One cartel controls Polkadot.</p>
+  <div class="grid-2 r" style="--d:4;flex:1 1 auto;">
+    <div class="card" style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.1em;">NAIVE: PICK TOP STAKERS</div>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:8px;">
+        <li style="font-size:14px;color:var(--muted);line-height:1.55;padding-left:16px;border-left:2px solid var(--border);">The 300 richest validators always win.</li>
+        <li style="font-size:14px;color:var(--muted);line-height:1.55;padding-left:16px;border-left:2px solid var(--border);">Their nominators get all rewards. Nobody else bothers.</li>
+        <li style="font-size:14px;color:var(--muted);line-height:1.55;padding-left:16px;border-left:2px solid var(--border);">Stake concentrates. Network becomes centralised.</li>
+      </ul>
+    </div>
+    <div class="card accent" style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--acc);font-weight:600;letter-spacing:.1em;">NPOS: PHRAGMÉN ALGORITHM</div>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:8px;">
+        <li style="font-size:14px;color:var(--text);line-height:1.55;padding-left:16px;border-left:2px solid var(--acc);">Tries to spread stake evenly across all elected validators.</li>
+        <li style="font-size:14px;color:var(--text);line-height:1.55;padding-left:16px;border-left:2px solid var(--acc);">A validator with less total DOT can win if spreading their backers' stake increases overall distribution.</li>
+        <li style="font-size:14px;color:var(--text);line-height:1.55;padding-left:16px;border-left:2px solid var(--acc);">More decentralised, fairer rewards.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout r footer" style="--d:5;margin-top:18px;"><b>The goal:</b> Every elected validator should have roughly equal stake backing them. This prevents any single validator (or cartel) from having disproportionate influence.</div>
+</div>
+
+<!-- SLIDE 6: REWARDS -->
+<div class="slide" id="s6">
+  <div class="day-tag r" style="--d:0">DAY 35 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 03 / 03 · The rewards</div>
+  <h2 class="h-title r" style="--d:2;font-size:40px;margin-bottom:18px;">How rewards flow from validators to nominators</h2>
+  <p class="body-text r" style="--d:3;margin-bottom:24px;">At the end of each 24-hour era, the protocol calculates rewards for each validator based on the number of blocks they produced and the fees they collected. The validator takes their commission (e.g. 5%), and the rest is split proportionally among all nominators backing that validator.</p>
+  <div class="flow r" style="--d:4;margin-bottom:24px;">
+    <div class="flow-box">ERA REWARD<br>POOL</div>
+    <div class="flow-arr">→</div>
+    <div class="flow-box">VALIDATOR<br>COMMISSION<br><span style="color:var(--acc);">(e.g. 5%)</span></div>
+    <div class="flow-arr">→</div>
+    <div class="flow-box accent">REMAINING 95%<br>split pro-rata among<br>nominators</div>
+  </div>
+  <div class="callout r footer" style="--d:5;margin-top:auto;"><b>Low commission ≠ best choice.</b> A validator with 0% commission but frequent downtime earns fewer rewards than a 5% commission validator with perfect uptime. Always check the validator's performance history, not just commission.</div>
+</div>
+
+<!-- SLIDE 7: SLASHING -->
+<div class="slide" id="s7">
+  <div class="day-tag r" style="--d:0">DAY 35 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; The deterrent</div>
+  <h2 class="h-title r" style="--d:2;font-size:38px;margin-bottom:24px;">Slashing — graduated penalties for misconduct</h2>
+  <div class="r" style="--d:3;flex:1 1 auto;">
+    <table class="tbl" style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <thead>
+        <tr>
+          <th>Offence</th>
+          <th>Slash Amount</th>
+          <th>Who Loses</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Being offline / unresponsive</td>
+          <td style="color:var(--yellow);">Small % (0.1%)</td>
+          <td>Validator only</td>
+        </tr>
+        <tr>
+          <td>Equivocation (double-signing)</td>
+          <td style="color:var(--red);">Up to 100%</td>
+          <td>Validator + all nominators</td>
+        </tr>
+        <tr>
+          <td>Coordinated attack</td>
+          <td style="color:var(--red);">Up to 100%</td>
+          <td>Validator + all nominators</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout r footer" style="--d:4;margin-top:18px;"><b>Nominators share slashing risk.</b> This is why nomination is not passive — you must monitor your validators. Polkadot.js apps shows a validator's history; check for past slash events before nominating.</div>
+</div>
+
+<!-- SLIDE 8: LAB PREVIEW -->
+<div class="slide" id="s8">
+  <div class="day-tag r" style="--d:0">DAY 35 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 11:00 – 12:00 · Lab</div>
+  <h2 class="h-title r" style="--d:2;font-size:42px;margin-bottom:22px;">Today's lab — Validator Research</h2>
+  <div class="grid-2 r" style="--d:3;flex:1 1 auto;">
+    <div class="card" style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="pill">CORE</span>
+        <span style="font-family:var(--mono);font-size:13px;color:var(--muted);">Validator deep dive</span>
+      </div>
+      <p style="font-size:14px;color:var(--text);line-height:1.65;">Go to <span style="font-family:var(--mono);color:var(--acc);">polkadot.js.org/apps/#/staking</span>. Pick one active validator. Record:</p>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:6px;">
+        <li style="font-size:14px;color:var(--muted);padding-left:14px;border-left:2px solid var(--border);">Total stake (self + nominated)</li>
+        <li style="font-size:14px;color:var(--muted);padding-left:14px;border-left:2px solid var(--border);">Number of nominators</li>
+        <li style="font-size:14px;color:var(--muted);padding-left:14px;border-left:2px solid var(--border);">Commission %</li>
+        <li style="font-size:14px;color:var(--muted);padding-left:14px;border-left:2px solid var(--border);">Any slash history</li>
+        <li style="font-size:14px;color:var(--muted);padding-left:14px;border-left:2px solid var(--border);">Validator's identity (if set)</li>
+      </ul>
+      <p style="font-size:13px;color:var(--dim);">Write findings as Python comments.</p>
+    </div>
+    <div class="card accent" style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="pill">STRETCH</span>
+        <span style="font-family:var(--mono);font-size:13px;color:var(--acc);">★ Compare three validators</span>
+      </div>
+      <p style="font-size:14px;color:var(--text);line-height:1.65;">Find one high-stake validator, one medium-stake, and one new/small validator.</p>
+      <p style="font-size:14px;color:var(--muted);line-height:1.65;">Compare their commission, nominator count, and uptime. Which would you nominate and why? Write a short comment explaining your reasoning.</p>
+    </div>
+  </div>
+  <div class="callout r footer" style="--d:4;margin-top:18px;"><b>How to submit.</b> Create <span style="font-family:var(--mono);color:var(--acc);">students/&lt;username&gt;/D35_npos.py</span> with your validator research as comments. PR before 12:00.</div>
+</div>
+
+<!-- SLIDE 9: RECAP -->
+<div class="slide" id="s9">
+  <div style="display:flex;flex-direction:column;justify-content:center;height:100%;padding:0 16px;gap:28px;">
+    <div class="eyebrow r" style="--d:1;">&gt;&gt; End of Day 35</div>
+    <h2 class="h-title r" style="--d:2;font-size:52px;">NPoS in three sentences</h2>
+    <ul class="chk-list r" style="--d:3;">
+      <li><span class="chk">✓</span><span>Validators produce blocks; nominators back them with DOT — both earn rewards, both risk slashing.</span></li>
+      <li><span class="chk">✓</span><span>The Phragmén election algorithm distributes stake evenly to prevent centralisation.</span></li>
+      <li><span class="chk">✓</span><span>Your Day 27 <span style="font-family:var(--mono);color:var(--yellow);">weighted_choice()</span> was a simplified version of this — the real algorithm adds fairness balancing.</span></li>
+    </ul>
+    <div class="footer r" style="--d:4;margin-top:12px;">
+      <span class="pill">UP NEXT</span>
+      <span style="font-size:15px;color:var(--muted);margin-left:12px;">Day 36: Subscan deep dive — reading extrinsics, following addresses, and understanding what's actually happening on-chain.</span>
+    </div>
+  </div>
+</div>
+
+</div></div>
+<div class="hud"><button id="prev">&#x2039;</button><span class="count"><b id="cur">01</b> / <span id="total">9</span></span><button id="next">&#x203A;</button><span class="sep"></span><button id="fs">⛶</button></div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen</div>
+<script>
+const slides=[...document.querySelectorAll(".slide")];const total=slides.length;let cur=0;document.getElementById("total").textContent=String(total).padStart(2,"0");function show(i){cur=Math.max(0,Math.min(total-1,i));slides.forEach((s,n)=>s.classList.toggle("active",n===cur));document.getElementById("cur").textContent=String(cur+1).padStart(2,"0");document.getElementById("progress").style.width=((cur+1)/total*100)+"%";location.hash=cur+1;}const next=()=>show(cur+1);const prev=()=>show(cur-1);document.addEventListener("keydown",e=>{if(["ArrowRight"," ","PageDown","Enter"].includes(e.key)){e.preventDefault();next();}else if(["ArrowLeft","PageUp","Backspace"].includes(e.key)){e.preventDefault();prev();}else if(e.key==="Home")show(0);else if(e.key==="End")show(total-1);else if(e.key.toLowerCase()==="f")toggleFs();});document.getElementById("next").onclick=next;document.getElementById("prev").onclick=prev;document.getElementById("fs").onclick=toggleFs;function toggleFs(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}const scaler=document.getElementById("scaler");function fit(){const sc=Math.min(window.innerWidth/1280,window.innerHeight/720);scaler.style.transform=`scale(${sc})`;}window.addEventListener("resize",fit);fit();setTimeout(()=>document.querySelector(".hint")?.classList.add("gone"),6000);window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.replace("#",""))||1;if(n-1!==cur)show(n-1);});show((parseInt(location.hash.replace("#",""))||1)-1);
+</script></body></html>

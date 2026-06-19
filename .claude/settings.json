@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"/Users/ss-deshmukh/Developer/Personal Project/FOP, Akole/Faculty-of-Polytechnic/lab/module_1_foundations/capstone_grade_buddy/CP1_core_functions\" && echo \"ok\")"
+    ],
+    "additionalDirectories": [
+      "/Users/ss-deshmukh/Developer/Personal Project/FOP, Akole/Faculty-of-Polytechnic/lab/module_1_foundations/capstone_grade_buddy"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+# problem 1
+
+def greet():
+    print("enter your name:")
+    print(input("enter your age:"))
+    print("Hi","n + "Next year you will be",a+1)
+
+greet()

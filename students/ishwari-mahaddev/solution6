@@ -1,0 +1,29 @@
+def calculate(l, b, h):
+    if (h>0):
+        volume = l*b*h
+        perimeter = 4 * (l+b+h)
+        return ( volume , perimeter)
+    
+    else:
+        area = l*b
+        perimeter = 2 * (l+b)
+        return ( area, perimeter)
+
+
+
+print("Cuboid:", calculate(5, 3, 4))
+print("Rectangle:", calculate(5, 3,0))
+#problem2
+a=[1,2,3,4,5,6,7,8,9,10]
+count=0
+for x in a:
+    if x%3==0:
+        count=count+1
+    if count>1:
+        print("good")
+    else:
+        print("bad")
+#problem3
+info="ishwari_mahaddev_20"
+result=info.split("_")
+print(result)
