@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python Mini Quiz — Faculty of Polytechnic</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 1rem;
+      width: 100%;
+      max-width: 680px;
+      padding: 2rem;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+
+    /* ── Header ── */
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header .badge {
+      display: inline-block;
+      background: #3b82f6;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+    }
+    .header h1 { font-size: 1.6rem; font-weight: 700; color: #f1f5f9; }
+    .header p  { font-size: 0.875rem; color: #94a3b8; margin-top: 0.25rem; }
+
+    /* ── Progress ── */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .progress-bar-track {
+      flex: 1;
+      height: 6px;
+      background: #334155;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #6366f1);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+    .progress-label { font-size: 0.8rem; color: #64748b; white-space: nowrap; }
+
+    /* ── Timer ── */
+    .timer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 1.25rem;
+    }
+    .timer span { color: #94a3b8; font-weight: 600; }
+
+    /* ── Question ── */
+    .question-number { font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; }
+    .question-text {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.55;
+      margin-bottom: 1.25rem;
+    }
+    .question-text code {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #7dd3fc;
+    }
+    .code-block {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin: 0.5rem 0 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      color: #7dd3fc;
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    /* ── Options ── */
+    .options { display: flex; flex-direction: column; gap: 0.65rem; }
+    .option-btn {
+      background: #0f172a;
+      border: 1.5px solid #334155;
+      border-radius: 0.65rem;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      cursor: pointer;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+    .option-btn:hover:not(:disabled) {
+      border-color: #3b82f6;
+      background: #1e3a5f;
+      color: #f1f5f9;
+    }
+    .option-btn .key {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #94a3b8;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .option-btn.correct {
+      border-color: #22c55e;
+      background: #052e16;
+      color: #bbf7d0;
+    }
+    .option-btn.correct .key { background: #22c55e; color: #fff; border-color: #22c55e; }
+    .option-btn.wrong {
+      border-color: #ef4444;
+      background: #2d0a0a;
+      color: #fecaca;
+    }
+    .option-btn.wrong .key { background: #ef4444; color: #fff; border-color: #ef4444; }
+    .option-btn:disabled { cursor: not-allowed; }
+
+    /* ── Feedback ── */
+    .feedback {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.65rem;
+      font-size: 0.875rem;
+      display: none;
+    }
+    .feedback.show { display: block; }
+    .feedback.correct-fb { background: #052e16; border: 1px solid #22c55e; color: #86efac; }
+    .feedback.wrong-fb   { background: #2d0a0a; border: 1px solid #ef4444; color: #fca5a5; }
+
+    /* ── Next button ── */
+    .next-btn {
+      display: block;
+      width: 100%;
+      margin-top: 1.25rem;
+      padding: 0.75rem;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 0.65rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: none;
+    }
+    .next-btn:hover { background: #2563eb; }
+    .next-btn.show { display: block; }
+
+    /* ── Results ── */
+    #results { display: none; text-align: center; }
+    #results.show { display: block; }
+    .score-ring {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 1.25rem;
+    }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-circle-bg { fill: none; stroke: #334155; stroke-width: 10; }
+    .score-circle-fill {
+      fill: none;
+      stroke: #3b82f6;
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 283;
+      stroke-dashoffset: 283;
+      transition: stroke-dashoffset 1s ease;
+    }
+    .score-text-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .score-ring-wrapper { position: relative; width: 120px; height: 120px; margin: 0 auto 1.25rem; }
+    .score-big { font-size: 1.75rem; font-weight: 700; color: #f1f5f9; }
+    .score-sub { font-size: 0.75rem; color: #64748b; }
+    .result-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .result-msg   { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.5rem; }
+
+    .stats-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    .stat {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.65rem;
+      padding: 0.65rem 1rem;
+      text-align: center;
+      min-width: 90px;
+    }
+    .stat-num { font-size: 1.2rem; font-weight: 700; }
+    .stat-lbl { font-size: 0.7rem; color: #64748b; }
+    .stat.correct-stat .stat-num { color: #22c55e; }
+    .stat.wrong-stat   .stat-num { color: #ef4444; }
+    .stat.time-stat    .stat-num { color: #3b82f6; }
+
+    .restart-btn {
+      padding: 0.75rem 2rem;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 0.65rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .restart-btn:hover { background: #2563eb; }
+
+    /* ── Start screen ── */
+    #start-screen { text-align: center; }
+    #start-screen h2 { font-size: 1.1rem; font-weight: 600; color: #f1f5f9; margin-bottom: 0.5rem; }
+    #start-screen p  { font-size: 0.875rem; color: #94a3b8; margin-bottom: 1.5rem; line-height: 1.6; }
+    .info-grid {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .info-pill {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 999px;
+      padding: 0.35rem 1rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+    .start-btn {
+      padding: 0.8rem 2.5rem;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 0.65rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .start-btn:hover { background: #2563eb; transform: translateY(-1px); }
+
+    #quiz-area { display: none; }
+
+    @media (max-width: 480px) {
+      .card { padding: 1.25rem; }
+      .stats-row { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">Faculty of Polytechnic</div>
+    <h1>🐍 Python Mini Quiz</h1>
+    <p>Module 1 — Foundations of Programming</p>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="start-screen">
+    <h2>Test your Python knowledge!</h2>
+    <p>Answer all questions and see how well you know Python basics.<br>Each question has one correct answer.</p>
+    <div class="info-grid">
+      <span class="info-pill">📋 20 Questions</span>
+      <span class="info-pill">⏱ Timed</span>
+      <span class="info-pill">✅ Instant Feedback</span>
+    </div>
+    <button class="start-btn" onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <!-- Quiz Area -->
+  <div id="quiz-area">
+    <div class="progress-row">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-label" id="progress-label">1 / 20</div>
+    </div>
+    <div class="timer">⏱ Time: <span id="timer-display">0:00</span></div>
+
+    <div class="question-number" id="q-number">Question 1</div>
+    <div class="question-text" id="q-text"></div>
+    <div id="q-code" class="code-block" style="display:none"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="score-ring-wrapper">
+      <svg class="score-ring" viewBox="0 0 100 100">
+        <circle class="score-circle-bg" cx="50" cy="50" r="45"/>
+        <circle class="score-circle-fill" id="score-arc" cx="50" cy="50" r="45"/>
+      </svg>
+      <div class="score-text-overlay">
+        <div class="score-big" id="score-big">0/20</div>
+        <div class="score-sub">score</div>
+      </div>
+    </div>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-msg"  id="result-msg"></div>
+    <div class="stats-row">
+      <div class="stat correct-stat">
+        <div class="stat-num" id="stat-correct">0</div>
+        <div class="stat-lbl">Correct</div>
+      </div>
+      <div class="stat wrong-stat">
+        <div class="stat-num" id="stat-wrong">0</div>
+        <div class="stat-lbl">Wrong</div>
+      </div>
+      <div class="stat time-stat">
+        <div class="stat-num" id="stat-time">0:00</div>
+        <div class="stat-lbl">Time</div>
+      </div>
+    </div>
+    <button class="restart-btn" onclick="restartQuiz()">Try Again</button>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  // ── Data Types & Variables ──
+  {
+    q: "What is the output of: <code>print(type(3.14))</code>?",
+    opts: ["<class 'int'>", "<class 'float'>", "<class 'str'>", "<class 'double'>"],
+    ans: 1
+  },
+  {
+    q: "Which of the following is the correct way to declare a variable in Python?",
+    opts: ["int x = 5", "var x = 5", "x = 5", "declare x = 5"],
+    ans: 2
+  },
+  {
+    q: "What is the data type of the value <code>True</code> in Python?",
+    opts: ["str", "int", "bool", "bit"],
+    ans: 2
+  },
+  {
+    q: "Which of the following creates a <strong>string</strong> in Python?",
+    opts: ["x = 42", "x = 3.14", 'x = "hello"', "x = [1, 2, 3]"],
+    ans: 2
+  },
+
+  // ── Operators ──
+  {
+    q: "What will <code>10 % 3</code> evaluate to?",
+    opts: ["3", "1", "0", "3.33"],
+    ans: 1
+  },
+  {
+    q: "What is the result of <code>2 ** 4</code> in Python?",
+    opts: ["8", "16", "6", "24"],
+    ans: 1
+  },
+  {
+    q: "Which operator is used for integer (floor) division in Python?",
+    opts: ["/", "%", "//", "\\"],
+    ans: 2
+  },
+
+  // ── Strings & Built-ins ──
+  {
+    q: "What does <code>len('hello')</code> return?",
+    opts: ["4", "6", "5", "Error"],
+    ans: 2
+  },
+  {
+    q: "Which method converts a string to ALL UPPERCASE?",
+    opts: ["str.upper()", "str.capitalize()", "str.title()", "str.big()"],
+    ans: 0
+  },
+  {
+    q: "What is the output of <code>'Python'[0]</code>?",
+    opts: ["P", "y", "Py", "Error"],
+    ans: 0
+  },
+
+  // ── Collections ──
+  {
+    q: "Which of the following is a valid Python <strong>list</strong>?",
+    opts: ["(1, 2, 3)", "{1, 2, 3}", "[1, 2, 3]", "<1, 2, 3>"],
+    ans: 2
+  },
+  {
+    q: "What method adds an item to the END of a list?",
+    opts: ["list.add()", "list.insert()", "list.push()", "list.append()"],
+    ans: 3
+  },
+  {
+    q: "Which collection type is <strong>immutable</strong> (cannot be changed after creation)?",
+    opts: ["list", "tuple", "dict", "set"],
+    ans: 1
+  },
+
+  // ── Control Flow ──
+  {
+    q: "What is the correct way to add a comment in Python?",
+    opts: ["// This is a comment", "/* This is a comment */", "<!-- comment -->", "# This is a comment"],
+    ans: 3
+  },
+  {
+    q: "What does this code print?",
+    code: "x = 5\nif x > 3:\n    print('yes')\nelse:\n    print('no')",
+    opts: ["no", "yes", "5", "Error"],
+    ans: 1
+  },
+  {
+    q: "Which loop is used when the number of iterations is <strong>NOT known</strong> in advance?",
+    opts: ["for loop", "while loop", "do-while loop", "repeat loop"],
+    ans: 1
+  },
+  {
+    q: "What does this code print?",
+    code: "for i in range(3):\n    print(i)",
+    opts: ["1 2 3", "0 1 2 3", "0 1 2", "1 2"],
+    ans: 2
+  },
+
+  // ── Functions & I/O ──
+  {
+    q: "Which keyword is used to <strong>define a function</strong> in Python?",
+    opts: ["function", "fun", "def", "define"],
+    ans: 2
+  },
+  {
+    q: "Which function is used to get <strong>input from the user</strong>?",
+    opts: ["get()", "scan()", "read()", "input()"],
+    ans: 3
+  },
+  {
+    q: "How do you convert the string <code>'42'</code> to an integer?",
+    opts: ["str('42')", "float('42')", "int('42')", "num('42')"],
+    ans: 2
+  },
+];
+
+const KEYS = ["A", "B", "C", "D"];
+
+let current = 0;
+let score   = 0;
+let answered = false;
+let startTime = null;
+let timerInterval = null;
+let wrongCount = 0;
+
+function fmtTime(secs) {
+  return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+}
+
+function startQuiz() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'block';
+  current = 0; score = 0; wrongCount = 0; answered = false;
+  startTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000);
+  renderQuestion();
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  document.getElementById('timer-display').textContent = fmtTime(elapsed);
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = QUESTIONS[current];
+
+  document.getElementById('q-number').textContent = `Question ${current + 1}`;
+  document.getElementById('q-text').innerHTML = q.q;
+
+  const codeEl = document.getElementById('q-code');
+  if (q.code) {
+    codeEl.textContent = q.code;
+    codeEl.style.display = 'block';
+  } else {
+    codeEl.style.display = 'none';
+  }
+
+  const pct = (current / QUESTIONS.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${current + 1} / ${QUESTIONS.length}`;
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="key">${KEYS[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(i, btn);
+    opts.appendChild(btn);
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  fb.textContent = '';
+
+  const nb = document.getElementById('next-btn');
+  nb.className = 'next-btn';
+  nb.textContent = current === QUESTIONS.length - 1 ? 'See Results →' : 'Next Question →';
+}
+
+function selectAnswer(idx, btn) {
+  if (answered) return;
+  answered = true;
+
+  const q = QUESTIONS[current];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const fb = document.getElementById('feedback');
+  if (idx === q.ans) {
+    btn.classList.add('correct');
+    score++;
+    fb.textContent = '✓ Correct!';
+    fb.className = 'feedback correct-fb show';
+  } else {
+    btn.classList.add('wrong');
+    wrongCount++;
+    btns[q.ans].classList.add('correct');
+    fb.textContent = `✗ Incorrect. The correct answer is ${KEYS[q.ans]}.`;
+    fb.className = 'feedback wrong-fb show';
+  }
+
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= QUESTIONS.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+
+  document.getElementById('quiz-area').style.display = 'none';
+  const res = document.getElementById('results');
+  res.classList.add('show');
+
+  const pct = score / QUESTIONS.length;
+  document.getElementById('score-big').textContent = `${score}/${QUESTIONS.length}`;
+  document.getElementById('stat-correct').textContent = score;
+  document.getElementById('stat-wrong').textContent = wrongCount;
+  document.getElementById('stat-time').textContent = fmtTime(elapsed);
+
+  const arc = document.getElementById('score-arc');
+  const circumference = 2 * Math.PI * 45;
+  setTimeout(() => {
+    arc.style.strokeDashoffset = circumference * (1 - pct);
+    if (pct >= 0.8) arc.style.stroke = '#22c55e';
+    else if (pct >= 0.5) arc.style.stroke = '#f59e0b';
+    else arc.style.stroke = '#ef4444';
+  }, 100);
+
+  let title, msg;
+  if (pct === 1)       { title = '🏆 Perfect Score!';        msg = 'Flawless! You know your Python basics inside out.'; }
+  else if (pct >= 0.8) { title = '🎉 Excellent!';            msg = 'Great work! Just a couple of things to revisit.'; }
+  else if (pct >= 0.6) { title = '👍 Good Job!';             msg = 'Solid understanding. Review the questions you missed.'; }
+  else if (pct >= 0.4) { title = '📚 Keep Practising!';      msg = 'You\'re on the right track — review the topics and try again.'; }
+  else                 { title = '💪 Don\'t Give Up!';        msg = 'Python takes practice. Go through the lectures and try again!'; }
+
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-msg').textContent   = msg;
+}
+
+function restartQuiz() {
+  document.getElementById('results').classList.remove('show');
+  clearInterval(timerInterval);
+  startQuiz();
+}
+</script>
+</body>
+</html>
