@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Labs — Foundations of Programming</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --surface2: #162032; --border: #334155;
+      --text: #e2e8f0; --muted: #94a3b8; --dim: #64748b;
+      --blue: #3b82f6; --blue-d: #2563eb;
+      --green: #22c55e; --purple: #8b5cf6; --orange: #f59e0b; --pink: #ec4899;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem; }
+
+    /* ── Nav ── */
+    .nav { position: sticky; top: 0; z-index: 100; background: rgba(15,23,42,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .nav-logo { font-weight: 700; font-size: 1rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .nav-logo span { color: var(--blue); }
+    .nav-links { display: flex; gap: 0.25rem; }
+    .nav-links a { padding: 0.4rem 0.85rem; border-radius: 6px; font-size: 0.875rem; color: var(--muted); transition: background 0.15s, color 0.15s; }
+    .nav-links a:hover, .nav-links a.active { background: var(--surface); color: var(--text); }
+    .nav-links a.btn-nav { background: var(--blue); color: #fff; font-weight: 600; }
+    .nav-links a.btn-nav:hover { background: var(--blue-d); }
+    .nav-ham { display: none; background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.35rem 0.6rem; color: var(--muted); cursor: pointer; font-size: 1.1rem; }
+    @media (max-width: 600px) {
+      .nav-links { display: none; flex-direction: column; position: absolute; top: 60px; left: 0; right: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.75rem 1.25rem; gap: 0.25rem; }
+      .nav-links.open { display: flex; }
+      .nav-ham { display: block; }
+    }
+
+    /* ── Page header ── */
+    .page-header { padding: 3rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .page-header .label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); margin-bottom: 0.4rem; }
+    .page-header h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800; color: #f1f5f9; margin-bottom: 0.4rem; }
+    .page-header p { color: var(--muted); font-size: 0.95rem; }
+
+    /* ── How to use ── */
+    .howto { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; margin: 2rem 0; display: flex; gap: 2rem; flex-wrap: wrap; }
+    .howto-step { display: flex; align-items: flex-start; gap: 0.65rem; flex: 1; min-width: 180px; }
+    .howto-step .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .howto-step h4 { font-size: 0.82rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.15rem; }
+    .howto-step p { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── Module section ── */
+    .module-section { padding: 2.5rem 0 0.5rem; }
+    .module-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+    .module-tag { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.25rem 0.75rem; border-radius: 999px; }
+    .module-header h2 { font-size: 1.05rem; font-weight: 700; color: #f1f5f9; }
+    .module-header span { font-size: 0.8rem; color: var(--dim); margin-left: auto; }
+    .m1 .module-tag { background: rgba(59,130,246,0.15); color: #93c5fd; }
+
+    /* ── Lab list ── */
+    .lab-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .lab-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1rem 1.25rem; display: flex; align-items: flex-start; gap: 1rem;
+      transition: border-color 0.15s;
+    }
+    .lab-card:hover { border-color: var(--blue); }
+    .lab-num {
+      min-width: 44px; height: 44px; border-radius: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700; color: var(--dim); text-align: center;
+      line-height: 1.2; flex-shrink: 0;
+    }
+    .lab-body { flex: 1; }
+    .lab-title { font-size: 0.9rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.25rem; }
+    .lab-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+    .lab-actions { display: flex; gap: 0.5rem; flex-shrink: 0; flex-wrap: wrap; align-items: center; }
+    .lab-btn {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.35rem 0.85rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+      border: 1.5px solid var(--border); color: var(--muted); background: var(--surface2);
+      white-space: nowrap; transition: all 0.15s; cursor: pointer;
+    }
+    .lab-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(59,130,246,0.07); }
+    .lab-btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .lab-btn.primary:hover { background: var(--blue-d); border-color: var(--blue-d); }
+
+    /* Capstone styling */
+    .capstone-card {
+      background: rgba(139,92,246,0.07); border-color: rgba(139,92,246,0.35);
+    }
+    .capstone-card:hover { border-color: var(--purple); }
+    .capstone-card .lab-num { background: rgba(139,92,246,0.15); color: #c4b5fd; border-color: rgba(139,92,246,0.3); }
+    .capstone-card .lab-btn.primary { background: var(--purple); border-color: var(--purple); }
+    .capstone-card .lab-btn.primary:hover { background: #7c3aed; border-color: #7c3aed; }
+    .capstone-label { display: inline-block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.1rem 0.5rem; border-radius: 999px; background: rgba(139,92,246,0.2); color: #c4b5fd; margin-bottom: 0.3rem; }
+
+    @media (max-width: 640px) {
+      .lab-card { flex-direction: column; gap: 0.75rem; }
+      .lab-actions { justify-content: flex-start; }
+    }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--border); padding: 2rem 0; text-align: center; font-size: 0.82rem; color: var(--dim); margin-top: 3rem; }
+    footer a { color: var(--blue); }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">🐍 <span>FOP</span> · Akole</a>
+    <button class="nav-ham" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="lectures.html">Lectures</a>
+      <a href="labs.html" class="active">Labs</a>
+      <a href="docs/quizzes/python_quiz.html" class="btn-nav">Quiz</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="container">
+    <div class="label">17 Problem Sets · 2 Capstones</div>
+    <h1>Lab Problems</h1>
+    <p>Hands-on coding challenges for every session. Fork the repo, open in Codespaces, and submit a PR when done.</p>
+
+    <div class="howto">
+      <div class="howto-step">
+        <div class="icon">🍴</div>
+        <div>
+          <h4>1. Fork the Repo</h4>
+          <p>Fork <a href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic" target="_blank" style="color:var(--blue)">Faculty-of-Polytechnic</a> on GitHub to your account.</p>
+        </div>
+      </div>
+      <div class="howto-step">
+        <div class="icon">☁️</div>
+        <div>
+          <h4>2. Open in Codespaces</h4>
+          <p>Click <strong>Code → Codespaces → Create</strong> to launch a cloud environment. No install needed.</p>
+        </div>
+      </div>
+      <div class="howto-step">
+        <div class="icon">📝</div>
+        <div>
+          <h4>3. Edit starter.py</h4>
+          <p>Read <code>problem.md</code>, then write your solution in <code>starter.py</code>.</p>
+        </div>
+      </div>
+      <div class="howto-step">
+        <div class="icon">📬</div>
+        <div>
+          <h4>4. Open a PR</h4>
+          <p>Commit your changes and open a pull request to submit.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Module 1 Labs ── -->
+<div class="module-section m1">
+  <div class="container">
+    <div class="module-header">
+      <span class="module-tag">Module 1</span>
+      <h2>Python Foundations</h2>
+      <span>15 labs + 2 capstones</span>
+    </div>
+
+    <div class="lab-list">
+
+      <div class="lab-card">
+        <div class="lab-num">D1</div>
+        <div class="lab-body">
+          <div class="lab-title">Seconds in a Week</div>
+          <div class="lab-desc">Calculate exactly how many seconds fit in a week using variables and arithmetic operators.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D01_seconds_in_week/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D01_seconds_in_week/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D4</div>
+        <div class="lab-body">
+          <div class="lab-title">Greeter + Tip Calculator</div>
+          <div class="lab-desc">Write functions that greet a user by name and compute the tip on a restaurant bill.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D04_greeter/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D04_greeter/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D5</div>
+        <div class="lab-body">
+          <div class="lab-title">About Me</div>
+          <div class="lab-desc">Create a Python program that displays a formatted personal introduction using variables and print().</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D05_about_me/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D05_about_me/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D6</div>
+        <div class="lab-body">
+          <div class="lab-title">Grade Classifier + Leap Year</div>
+          <div class="lab-desc">Classify a numeric score into a letter grade using if/elif/else, then check if a year is a leap year.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D06_grade_classifier/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D06_grade_classifier/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D7</div>
+        <div class="lab-body">
+          <div class="lab-title">Sum 1..N + Times Tables</div>
+          <div class="lab-desc">Use for loops to compute the sum of 1 to N and print a formatted multiplication table.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D07_loops_and_tables/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D07_loops_and_tables/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D8</div>
+        <div class="lab-body">
+          <div class="lab-title">Find First Match</div>
+          <div class="lab-desc">Loop through a list and return the first element that matches a given condition, using break.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D08_find_first_match/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D08_find_first_match/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D9</div>
+        <div class="lab-body">
+          <div class="lab-title">Patterns + Prime Check</div>
+          <div class="lab-desc">Print star/number patterns using nested loops, and write a function to check if a number is prime.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D09_patterns_and_primes/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D09_patterns_and_primes/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D10</div>
+        <div class="lab-body">
+          <div class="lab-title">Number Guessing Game</div>
+          <div class="lab-desc">Build an interactive guessing game with "too high / too low" hints and a limited number of tries.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D10_guessing_game/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D10_guessing_game/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D11</div>
+        <div class="lab-body">
+          <div class="lab-title">Refactor into Functions</div>
+          <div class="lab-desc">Take a working but monolithic script and split it into well-named, single-purpose functions.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D11_functions/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D11_functions/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D12</div>
+        <div class="lab-body">
+          <div class="lab-title">Geometry Helpers</div>
+          <div class="lab-desc">Write functions to compute area and perimeter for circles, rectangles, and triangles.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D12_geometry_helpers/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D12_geometry_helpers/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D13</div>
+        <div class="lab-body">
+          <div class="lab-title">Scope Bug-Hunt: The Broken Shopping Cart</div>
+          <div class="lab-desc">Diagnose and fix scope-related bugs in a broken shopping cart program — global vs local variable errors.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D13_scope_bughunt/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D13_scope_bughunt/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D14</div>
+        <div class="lab-body">
+          <div class="lab-title">Refactor: Spaghetti → Clean</div>
+          <div class="lab-desc">Rewrite messy procedural spaghetti code into clean, modular, readable Python with proper functions.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D14_refactor_spaghetti/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D14_refactor_spaghetti/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <div class="lab-card">
+        <div class="lab-num">D15</div>
+        <div class="lab-body">
+          <div class="lab-title">Simple Calculator</div>
+          <div class="lab-desc">Build a command-line calculator that handles +, −, ×, ÷ with input validation and a clean menu.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D15_calculator/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/D15_calculator/starter.py" target="_blank">🐍 Starter</a>
+        </div>
+      </div>
+
+      <!-- Capstones -->
+      <div class="lab-card capstone-card">
+        <div class="lab-num">CP</div>
+        <div class="lab-body">
+          <div class="capstone-label">Capstone</div>
+          <div class="lab-title">Grade Buddy</div>
+          <div class="lab-desc">Full 4-part capstone: input marks, compute averages, classify grades, and generate a formatted report card — built in stages across 4 checkpoints.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/tree/main/lab/module_1_foundations/capstone_grade_buddy" target="_blank">📋 View Capstone</a>
+        </div>
+      </div>
+
+      <div class="lab-card capstone-card">
+        <div class="lab-num">CP</div>
+        <div class="lab-body">
+          <div class="capstone-label">Capstone</div>
+          <div class="lab-title">GitHub Profile — Mini Capstone</div>
+          <div class="lab-desc">Build a Python script that prints a formatted, GitHub-style profile page using variables, strings, and functions.</div>
+        </div>
+        <div class="lab-actions">
+          <a class="lab-btn primary" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/capstone_github_profile/problem.md" target="_blank">📋 Problem</a>
+          <a class="lab-btn" href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic/blob/main/lab/module_1_foundations/capstone_github_profile/template.md" target="_blank">📄 Template</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <p>Faculty of Polytechnic, Akole &nbsp;·&nbsp; Visiting Faculty: <a href="https://github.com/ss-deshmukh" target="_blank">Siddhesh Deshmukh</a> &nbsp;·&nbsp; <a href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic" target="_blank">GitHub Repository</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

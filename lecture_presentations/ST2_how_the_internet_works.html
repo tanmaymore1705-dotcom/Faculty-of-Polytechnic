@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Special Topics · 2 — How the Internet Actually Works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ─────────────────────────  THEME  ───────────────────────── */
+  :root{
+    --bg:#0A0A0F; --surface:#111122; --card:#15152A;
+    --border:#262640; --border-br:#353556;
+    --text:#E2E8F0; --text-br:#F1F5F9; --muted:#94A3B8; --dim:#64748B; --faint:#475569;
+    --cyan:#00D4FF; --cyan-dim:#0891A8; --yellow:#FFD43B; --green:#34D399; --red:#F87171; --purple:#A78BFA;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+    --disp:'Space Grotesk','IBM Plex Sans',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#050507; color:var(--text); font-family:var(--sans);
+    overflow:hidden; display:grid; place-items:center;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ─────────────────────────  STAGE  ───────────────────────── */
+  .scaler{ transform-origin:center center; }
+  .stage{
+    width:1280px; height:720px; position:relative;
+    background:var(--bg); overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.6); border-radius:10px;
+  }
+  .slide{
+    position:absolute; inset:0; padding:56px 64px 48px;
+    display:flex; flex-direction:column;
+    opacity:0; visibility:hidden; transition:opacity .35s ease;
+  }
+  .slide.active{ opacity:1; visibility:visible; }
+
+  /* staggered entrance */
+  .slide.active .r{ animation:rise .5s cubic-bezier(.2,.7,.2,1) both;
+    animation-delay:calc(var(--d,0) * 55ms); }
+  @keyframes rise{ from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none} }
+
+  /* ─────────────────────────  PRIMITIVES  ───────────────────────── */
+  .eyebrow{ font-family:var(--mono); font-size:13px; font-weight:600;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--cyan); }
+  .h-title{ font-family:var(--disp); font-weight:700; color:var(--text-br);
+    line-height:1.08; }
+  .lede{ font-size:17px; color:var(--muted); line-height:1.55; max-width:62ch; }
+  .body-text{ font-size:18px; color:var(--text); line-height:1.55; max-width:64ch; }
+
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:10px; }
+  .card.accent{ border-color:var(--cyan); background:rgba(0,212,255,.05); }
+
+  /* code / terminal block */
+  .code{ background:#0c0c14; border:1px solid var(--border); border-radius:9px;
+    overflow:hidden; display:flex; flex-direction:column; min-height:0; }
+  .cbar{ display:flex; align-items:center; gap:7px; padding:9px 13px;
+    border-bottom:1px solid var(--border); flex:0 0 auto; }
+  .cd{ width:9px; height:9px; border-radius:50%; background:#5C5C7A; }
+  .cf{ margin-left:8px; font-family:var(--mono); font-size:11.5px; color:var(--dim); }
+  .cpre{ margin:0; padding:14px 16px; overflow:auto; flex:1 1 auto; }
+  .cpre code{ font-family:var(--mono); font-size:15px; line-height:1.62;
+    color:var(--text); white-space:pre; display:block; }
+  /* syntax */
+  .kw{ color:var(--cyan); } .const{ color:var(--purple); }
+  .bif{ color:var(--yellow); } .num{ color:#FFA657; }
+  .str{ color:var(--green); } .com{ color:var(--dim); font-style:italic; }
+  .err{ color:var(--red); font-style:italic; }
+
+  /* ─────────────────────────  HUD  ───────────────────────── */
+  .progress{ position:fixed; top:0; left:0; height:3px; background:var(--cyan);
+    width:0; z-index:50; transition:width .35s ease; box-shadow:0 0 10px var(--cyan); }
+  .hud{ position:fixed; bottom:18px; right:20px; z-index:50;
+    display:flex; align-items:center; gap:14px;
+    font-family:var(--mono); font-size:13px; color:var(--dim);
+    background:rgba(17,17,34,.72); backdrop-filter:blur(8px);
+    border:1px solid var(--border); border-radius:999px; padding:7px 14px;
+    opacity:.5; transition:opacity .25s; }
+  .hud:hover{ opacity:1; }
+  .hud button{ all:unset; cursor:pointer; color:var(--muted); line-height:0;
+    padding:3px 6px; border-radius:6px; transition:color .15s,background .15s;
+    font-size:16px; font-family:var(--mono); }
+  .hud button:hover{ color:var(--cyan); background:rgba(0,212,255,.1); }
+  .hud .count b{ color:var(--cyan); }
+  .hud .sep{ width:1px; height:16px; background:var(--border); }
+  .hint{ position:fixed; bottom:18px; left:20px; z-index:50;
+    font-family:var(--mono); font-size:11px; color:var(--faint);
+    opacity:.7; transition:opacity .6s; }
+  .hint.gone{ opacity:0; }
+  .hint b{ color:var(--dim); }
+
+  /* slide-specific helpers */
+  .day-tag{ position:absolute; top:58px; right:72px; font-family:var(--mono);
+    font-size:14px; color:var(--dim); letter-spacing:.18em; }
+  .footer{ margin-top:auto; }
+  .callout{ border-left:3px solid var(--yellow); background:rgba(255,212,59,.06);
+    padding:14px 18px; border-radius:6px; color:var(--text); font-size:15px;
+    line-height:1.55; }
+  .callout b{ color:var(--yellow); }
+  .pill{ display:inline-block; font-family:var(--mono); font-size:12px;
+    background:rgba(0,212,255,.13); color:var(--cyan); padding:3px 9px;
+    border-radius:999px; letter-spacing:.06em; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
+  .num-list{ list-style:none; counter-reset:s; padding:0; }
+  .num-list li{ counter-increment:s; padding:10px 0 10px 46px; position:relative;
+    font-size:17px; color:var(--text); line-height:1.55; border-bottom:1px solid var(--border); }
+  .num-list li:last-child{ border-bottom:none; }
+  .num-list li::before{ content:counter(s,decimal-leading-zero);
+    position:absolute; left:0; top:10px; font-family:var(--mono);
+    font-size:14px; color:var(--cyan); font-weight:600; }
+
+  /* diagram blocks */
+  .box{ border:1.5px solid var(--border-br); border-radius:10px; background:var(--surface);
+    padding:14px 16px; text-align:center; }
+  .box .lbl{ font-family:var(--disp); font-weight:600; color:var(--text-br); font-size:17px; }
+  .box .sub{ font-family:var(--mono); font-size:12px; color:var(--dim); margin-top:5px; }
+  .box.hot{ border-color:var(--cyan); background:rgba(0,212,255,.06); }
+  .arrow{ display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); color:var(--cyan); font-size:22px; }
+
+  /* ─────────────────────────  PRINT (PDF backup)  ───────────────────────── */
+  @media print{
+    @page{ size:1280px 720px; margin:0; }
+    body{ display:block; overflow:visible; background:#fff; }
+    .scaler{ transform:none !important; }
+    .stage{ box-shadow:none; border-radius:0; }
+    .slide{ position:relative; opacity:1 !important; visibility:visible !important;
+      page-break-after:always; break-after:page; transition:none; }
+    .slide .r{ animation:none !important; }
+    .hud,.hint,.progress{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="scaler" id="scaler">
+<div class="stage" id="stage">
+
+  <!-- ═══════ SLIDE 1 · TITLE ═══════ -->
+  <section class="slide active" style="justify-content:center; padding:64px 72px;">
+    <div style="position:absolute;inset:0;
+      background-image:repeating-linear-gradient(transparent 0,transparent 89px,var(--border) 89px,var(--border) 90px);
+      opacity:.6;"></div>
+    <div style="position:relative;">
+      <div class="r eyebrow" style="--d:0; margin-bottom:26px;">&gt;&gt; Special Topics / 02 / Lecture</div>
+      <h1 class="r h-title" style="--d:1; font-size:72px; letter-spacing:-1px;">How the Internet<br>Actually Works</h1>
+      <div class="r" style="--d:2; font-family:var(--disp); font-weight:500; font-style:italic;
+        font-size:38px; color:var(--cyan); margin-top:10px;">From "Enter" to a webpage</div>
+
+      <div class="r" style="--d:3; margin-top:42px; font-size:18px; color:var(--muted); max-width:62ch; line-height:1.55;">
+        You type <code style="font-family:var(--mono);color:var(--text);">google.com</code>, hit Enter, and a page appears in 200 milliseconds.
+        In between, your request crossed cities, maybe oceans. Today we trace that journey, step by step.
+      </div>
+
+      <div class="r" style="--d:4; display:flex; gap:42px; margin-top:44px; font-size:15px;
+        font-family:var(--sans);">
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Lecture</span>
+          <div style="color:var(--text-br);margin-top:4px;">75 min</div></div>
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Builds on</span>
+          <div style="color:var(--text-br);margin-top:4px;">ST1 — one computer</div></div>
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Series</span>
+          <div style="color:var(--cyan);margin-top:4px;">ST · How It Really Works</div></div>
+      </div>
+    </div>
+    <div class="day-tag">ST 02 / 03</div>
+  </section>
+
+  <!-- ═══════ SLIDE 2 · AGENDA ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Today's roadmap</div>
+    <h2 class="r h-title" style="--d:1; font-size:44px; margin-top:8px;">Follow one request across the world</h2>
+
+    <ol class="r num-list" style="--d:2; margin-top:30px; max-width:80ch;">
+      <li>What the internet <b style="color:var(--text-br);">physically is</b> — cables + agreements</li>
+      <li><b style="color:var(--text-br);">IP addresses</b> — every device has a number</li>
+      <li><b style="color:var(--text-br);">DNS</b> — turning names into numbers</li>
+      <li><b style="color:var(--text-br);">Packets</b> — your data, chopped into postcards</li>
+      <li><b style="color:var(--text-br);">Routers &amp; hops</b> — the relay race across the planet</li>
+      <li><b style="color:var(--text-br);">HTTP &amp; HTTPS</b> — the request, the reply, the padlock</li>
+    </ol>
+
+    <div class="r footer" style="--d:3; display:flex; align-items:center; gap:14px;
+      border:1.5px solid var(--cyan); border-radius:10px; padding:14px 20px;
+      background:rgba(0,212,255,.04);">
+      <span class="pill">GOAL</span>
+      <span style="font-size:16px;color:var(--text);">Explain, end to end, what happens between Enter and the page appearing.</span>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 3 · HOOK ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; The hook</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">The internet is not in the air.</h2>
+    <p class="r body-text" style="--d:2; margin-top:18px;">
+      "The cloud", "wireless", "the web" — the words make it sound like magic floating around us.
+      It isn't. The internet is <b style="color:var(--text-br);">physical</b>: millions of kilometres of cable,
+      including <em style="color:var(--cyan);font-style:normal;">fibre-optic lines lying on the ocean floor</em> between continents.
+    </p>
+    <p class="r body-text" style="--d:3; margin-top:16px;">
+      Wi-Fi is only the last few metres — from your phone to a router that's plugged into a wire.
+      After that, it's cables all the way down.
+    </p>
+
+    <div class="r callout footer" style="--d:4;">
+      <b>Two ingredients, that's all:</b> wires to carry the signal, and <em>agreements</em> (called protocols) about what the signal means. Today is mostly about the agreements.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 4 · CABLES + AGREEMENTS ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 01 / 06 · What it's made of</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">A network of networks</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      "Internet" literally means <em>inter-network</em> — your home network, joined to your ISP's network, joined to thousands of others, all agreeing to pass each other's traffic.
+    </p>
+
+    <div class="r" style="--d:3; display:grid; grid-template-columns:1fr 32px 1fr 32px 1fr; gap:10px; margin-top:30px; align-items:center;">
+      <div class="box hot"><div class="lbl">Your device</div><div class="sub">phone / laptop</div></div>
+      <div class="arrow">&#8594;</div>
+      <div class="box"><div class="lbl">Your ISP</div><div class="sub">Jio, Airtel, the college</div></div>
+      <div class="arrow">&#8594;</div>
+      <div class="box"><div class="lbl">The backbone</div><div class="sub">big long-haul cables</div></div>
+    </div>
+    <div class="r" style="--d:4; display:grid; grid-template-columns:1fr 32px 1fr; gap:10px; margin-top:14px; align-items:center; max-width:64%;">
+      <div class="box"><div class="lbl">Their ISP</div><div class="sub">the server's provider</div></div>
+      <div class="arrow">&#8594;</div>
+      <div class="box hot"><div class="lbl">The server</div><div class="sub">google's computer</div></div>
+    </div>
+
+    <div class="r footer callout" style="--d:5; margin-top:24px;">
+      <b>No one owns the internet.</b> It works because everyone follows the same rulebook (TCP/IP). Any device that speaks the protocol can join — that's the whole design.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 5 · IP ADDRESSES ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 02 / 06 · IP addresses</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Every device needs a postal address</h2>
+
+    <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:22px; margin-top:24px; flex:1; min-height:0;">
+      <div class="r code" style="--d:2;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">addresses</span></div>
+<pre class="cpre"><code><span class="com"># IPv4 — four numbers, each 0–255</span>
+<span class="num">142.250.183.206</span>      <span class="com"># a google server</span>
+<span class="num">192.168.0.5</span>          <span class="com"># probably your laptop at home</span>
+
+<span class="com"># We ran out of IPv4, so IPv6 exists too:</span>
+<span class="num">2404:6800:4007:80e::200e</span>   <span class="com"># much bigger pool</span>
+
+<span class="com"># Find yours:</span>
+$ <span class="kw">ipconfig</span>      <span class="com"># Windows</span>
+$ <span class="kw">ifconfig</span>      <span class="com"># Mac / Linux</span></code></pre>
+      </div>
+      <div class="r" style="--d:3; display:flex; flex-direction:column; gap:14px;">
+        <div class="callout"><b>No address, no delivery.</b> Just like a letter needs a "to" address, every packet needs a destination IP — or the network has no idea where to send it.</div>
+        <div class="card accent" style="padding:16px 18px;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--cyan);">GOOD NEWS</div>
+          <p style="color:var(--muted);margin-top:8px;font-size:15px;line-height:1.5;">You'll almost never type an IP address. Why? Because of the next slide&hellip;</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 6 · DNS ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 03 / 06 · DNS</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">DNS — the internet's phonebook</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      Humans remember <code style="font-family:var(--mono);color:var(--text);">google.com</code>. Computers need <code style="font-family:var(--mono);color:var(--num,#FFA657);">142.250.183.206</code>. DNS is the lookup that turns the name into the number.
+    </p>
+
+    <div class="r" style="--d:3; display:grid; grid-template-columns:1fr 36px 1fr 36px 1fr; gap:10px; margin-top:28px; align-items:center;">
+      <div class="box hot"><div class="lbl">You type a name</div><div class="sub">google.com</div></div>
+      <div class="arrow">&#8594;</div>
+      <div class="box"><div class="lbl">Ask a DNS server</div><div class="sub">"what's its IP?"</div></div>
+      <div class="arrow">&#8594;</div>
+      <div class="box hot"><div class="lbl">Get the number</div><div class="sub">142.250.183.206</div></div>
+    </div>
+
+    <div class="r code" style="--d:4; margin-top:24px; max-width:760px;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">try_it</span></div>
+<pre class="cpre"><code>$ <span class="kw">nslookup</span> google.com
+<span class="com">Name:    google.com</span>
+<span class="com">Address: </span><span class="num">142.250.183.206</span>   <span class="com"># ← the phonebook just answered</span></code></pre>
+    </div>
+
+    <div class="r footer" style="--d:5; font-size:14px; color:var(--muted); margin-top:16px;">
+      Your computer caches the answer, so it doesn't look it up every single time. When DNS breaks, sites feel "down" even though the servers are fine — the phonebook just couldn't answer.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 7 · PACKETS ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 04 / 06 · Packets</div>
+    <h2 class="r h-title" style="--d:1; font-size:36px; margin-top:8px;">Your data travels as postcards, not a letter</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      A big file isn't sent in one piece. It's chopped into thousands of small <b style="color:var(--text);">packets</b>, each stamped with where it's going, where it's from, and its order number.
+    </p>
+
+    <div class="grid-2" style="margin-top:24px;">
+      <div class="r code" style="--d:3;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">one_packet</span></div>
+<pre class="cpre"><code><span class="com"># Every packet carries a little header:</span>
+to:   <span class="num">142.250.183.206</span>
+from: <span class="num">49.36.220.11</span>
+seq:  <span class="num">3</span> of <span class="num">1500</span>
+data: <span class="str">"...a slice of the image..."</span></code></pre>
+      </div>
+      <div class="r" style="--d:4; display:flex; flex-direction:column; gap:14px;">
+        <div class="callout"><b>Why bother?</b> Packets can each take a <em>different route</em>, dodge congestion, and if one is lost, only that tiny piece is resent — not the whole file.</div>
+        <div class="card" style="padding:16px 18px;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--purple);">REASSEMBLY</div>
+          <p style="color:var(--muted);margin-top:8px;font-size:15px;line-height:1.5;">Packets can arrive <b style="color:var(--text);">out of order</b>. The <code style="font-family:var(--mono);">seq</code> number lets the other end put them back together correctly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 8 · ROUTERS & HOPS ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 05 / 06 · Routers &amp; hops</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">A relay race, not a straight line</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      No single wire goes from you to Google. Your packets hop router to router, each one reading the "to" address and passing it one step closer. You can watch it happen:
+    </p>
+
+    <div class="r code" style="--d:3; margin-top:22px; flex:1; min-height:0;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">$ traceroute google.com</span></div>
+<pre class="cpre"><code><span class="num">1</span>  192.168.0.1      <span class="com"># your home router          1 ms</span>
+<span class="num">2</span>  100.71.4.1       <span class="com"># your ISP, nearby town     8 ms</span>
+<span class="num">3</span>  72.14.215.85     <span class="com"># into the backbone        21 ms</span>
+<span class="num">4</span>  108.170.250.97   <span class="com"># google's network         24 ms</span>
+<span class="num">5</span>  142.250.183.206  <span class="com"># arrived!                 25 ms</span>
+
+<span class="com"># Each line is one "hop". 5 hops, ~25 ms, across the country.</span></code></pre>
+    </div>
+
+    <div class="r footer" style="--d:4; font-size:14px; color:var(--muted); margin-top:16px;">
+      No router knows the whole path — each only knows "the next step toward that address." Millions of small, local decisions add up to a working global network.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 9 · TCP/IP LAYERS ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; The rulebook, in layers</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Four jobs, stacked — the TCP/IP model</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      Each layer trusts the one below it to do its job, so no single part has to understand everything.
+    </p>
+
+    <div class="r" style="--d:3; margin-top:22px; display:flex; flex-direction:column; gap:9px;">
+      <div style="display:grid; grid-template-columns:190px 1fr; gap:16px; align-items:center; padding:11px 16px; border:1px solid var(--cyan); border-radius:8px; background:rgba(0,212,255,.06);">
+        <span style="font-family:var(--disp);font-weight:600;color:var(--text-br);">Application</span>
+        <span style="color:var(--muted);font-size:15px;">HTTP, email — what you actually want. "Give me this page."</span>
+      </div>
+      <div style="display:grid; grid-template-columns:190px 1fr; gap:16px; align-items:center; padding:11px 16px; border:1px solid var(--border-br); border-radius:8px; background:var(--surface);">
+        <span style="font-family:var(--disp);font-weight:600;color:var(--text-br);">Transport (TCP)</span>
+        <span style="color:var(--muted);font-size:15px;">Splits into packets, numbers them, resends the lost ones.</span>
+      </div>
+      <div style="display:grid; grid-template-columns:190px 1fr; gap:16px; align-items:center; padding:11px 16px; border:1px solid var(--border-br); border-radius:8px; background:var(--surface);">
+        <span style="font-family:var(--disp);font-weight:600;color:var(--text-br);">Internet (IP)</span>
+        <span style="color:var(--muted);font-size:15px;">Addresses &amp; routes each packet hop to hop.</span>
+      </div>
+      <div style="display:grid; grid-template-columns:190px 1fr; gap:16px; align-items:center; padding:11px 16px; border:1px solid var(--border-br); border-radius:8px; background:var(--surface);">
+        <span style="font-family:var(--disp);font-weight:600;color:var(--text-br);">Link</span>
+        <span style="color:var(--muted);font-size:15px;">The actual wire / Wi-Fi signal carrying the bits.</span>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:4; margin-top:20px;">
+      <b>The big idea:</b> the page you wanted (top) gets handed down, sent as raw bits (bottom), and rebuilt layer by layer on the other side. Same four layers, in reverse.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 10 · HTTP & HTTPS ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 06 / 06 · HTTP &amp; HTTPS</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">The actual conversation</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      Once connected, your browser and the server talk in plain text: a <b style="color:var(--text);">request</b> goes out, a <b style="color:var(--text);">response</b> comes back.
+    </p>
+
+    <div class="grid-2" style="margin-top:22px; flex:1; min-height:0;">
+      <div class="r code" style="--d:3;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">request →</span></div>
+<pre class="cpre"><code><span class="kw">GET</span> /search?q=cats <span class="kw">HTTP/1.1</span>
+<span class="bif">Host:</span> google.com
+<span class="bif">User-Agent:</span> Firefox
+
+<span class="com"># "Please send me this page."</span></code></pre>
+      </div>
+      <div class="r code" style="--d:4;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">← response</span></div>
+<pre class="cpre"><code><span class="kw">HTTP/1.1</span> <span class="num">200</span> OK
+<span class="bif">Content-Type:</span> text/html
+
+<span class="str">&lt;html&gt;...the page...&lt;/html&gt;</span>
+<span class="com"># 200 = success. 404 = not found.</span></code></pre>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:5; margin-top:22px;">
+      <b>The "S" in HTTPS = the padlock.</b> Plain HTTP is a postcard anyone on the path can read. HTTPS seals it in an envelope (encryption) so only you and the server can read it. <b>Never type a password on a site without the padlock.</b>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 11 · THE FULL JOURNEY ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Putting it all together</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Enter &#8594; page, in six steps</h2>
+
+    <ol class="r num-list" style="--d:2; margin-top:24px; max-width:88ch;">
+      <li><b style="color:var(--text-br);">DNS:</b> turn <code style="font-family:var(--mono);color:var(--green);">google.com</code> into an IP address.</li>
+      <li><b style="color:var(--text-br);">Connect:</b> your computer opens a TCP connection to that IP (and HTTPS locks it).</li>
+      <li><b style="color:var(--text-br);">Request:</b> your browser sends <code style="font-family:var(--mono);color:var(--cyan);">GET /</code> — "send me the page."</li>
+      <li><b style="color:var(--text-br);">Route:</b> packets hop router-to-router across the world and back.</li>
+      <li><b style="color:var(--text-br);">Respond:</b> the server replies <code style="font-family:var(--mono);">200 OK</code> with the HTML, in packets.</li>
+      <li><b style="color:var(--text-br);">Render:</b> your browser reassembles them and draws the page. <b>~0.2 sec.</b></li>
+    </ol>
+
+    <div class="r footer callout" style="--d:3; margin-top:18px;">
+      <b>All of this</b>, dozens of times, every time you open one webpage — and you never notice.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 12 · ACTIVITY ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Try it yourself</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;">See the internet move</h2>
+
+    <div class="grid-2" style="margin-top:28px;">
+      <div class="r card" style="--d:2; padding:24px;">
+        <div class="pill">RUN</div>
+        <div style="font-family:var(--disp); font-size:22px; font-weight:600; color:var(--text-br); margin-top:14px;">Trace a route</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:15px; line-height:1.55;">
+          In a terminal run <code style="font-family:var(--mono);color:var(--yellow);">tracert google.com</code> (Windows) or <code style="font-family:var(--mono);color:var(--yellow);">traceroute google.com</code> (Mac/Linux). Count the hops. Which is slowest?
+        </p>
+      </div>
+      <div class="r card" style="--d:3; padding:24px;">
+        <div class="pill">LOOK UP</div>
+        <div style="font-family:var(--disp); font-size:22px; font-weight:600; color:var(--text-br); margin-top:14px;">Use the phonebook</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:15px; line-height:1.55;">
+          Run <code style="font-family:var(--mono);color:var(--yellow);">nslookup youtube.com</code>. Run it twice — do you get different IPs? (Big sites have many servers.)
+        </p>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:4;">
+      <b>Stretch.</b> In Python: <code style="font-family:var(--mono);color:var(--yellow);">import socket; socket.gethostbyname("github.com")</code>. You just did a DNS lookup in code — the same step your browser does first.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 13 · RECAP ═══════ -->
+  <section class="slide" style="justify-content:center; padding:64px 80px;">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; End of Special Topic 02</div>
+    <h2 class="r h-title" style="--d:1; font-size:52px; margin-top:8px;">What you can now explain</h2>
+
+    <ul style="list-style:none; padding:0; margin-top:34px; max-width:84ch;">
+      <li class="r" style="--d:2; padding:12px 0; font-size:20px; color:var(--text); border-bottom:1px solid var(--border);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        The internet is physical cables plus shared agreements (protocols).
+      </li>
+      <li class="r" style="--d:3; padding:12px 0; font-size:20px; color:var(--text); border-bottom:1px solid var(--border);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        IP addresses, and how DNS turns names into them.
+      </li>
+      <li class="r" style="--d:4; padding:12px 0; font-size:20px; color:var(--text); border-bottom:1px solid var(--border);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        Data travels as packets, hopping router to router.
+      </li>
+      <li class="r" style="--d:5; padding:12px 0; font-size:20px; color:var(--text);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        HTTP is the request/reply — and the padlock (HTTPS) is why it's safe.
+      </li>
+    </ul>
+
+    <div class="r footer" style="--d:6; display:flex; align-items:center; gap:14px; font-size:15px; color:var(--muted);">
+      <span class="pill">UP NEXT</span>
+      <span>Those servers you've been talking to — who owns them? Next: <b style="color:var(--text-br);">The Cloud</b>.</span>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<div class="hud">
+  <button id="prev" title="Previous (←)">&#x2039;</button>
+  <span class="count"><b id="cur">01</b> / <span id="total">13</span></span>
+  <button id="next" title="Next (→)">&#x203A;</button>
+  <span class="sep"></span>
+  <button id="fs" title="Fullscreen (F)">⛶</button>
+</div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen &nbsp; <b>Ctrl/⌘+P</b> save as PDF</div>
+
+<script>
+/* ───────── navigation ───────── */
+const slides = [...document.querySelectorAll(".slide")];
+const total  = slides.length;
+let cur = 0;
+document.getElementById("total").textContent = String(total).padStart(2,"0");
+
+function show(i){
+  cur = Math.max(0, Math.min(total-1, i));
+  slides.forEach((s,n) => s.classList.toggle("active", n===cur));
+  document.getElementById("cur").textContent = String(cur+1).padStart(2,"0");
+  document.getElementById("progress").style.width = ((cur+1)/total*100)+"%";
+  location.hash = cur+1;
+}
+const next = () => show(cur+1);
+const prev = () => show(cur-1);
+
+document.addEventListener("keydown", e => {
+  if (["ArrowRight"," ","PageDown","Enter"].includes(e.key)) { e.preventDefault(); next(); }
+  else if (["ArrowLeft","PageUp","Backspace"].includes(e.key)) { e.preventDefault(); prev(); }
+  else if (e.key === "Home") show(0);
+  else if (e.key === "End")  show(total-1);
+  else if (e.key.toLowerCase() === "f") toggleFs();
+});
+document.getElementById("next").onclick = next;
+document.getElementById("prev").onclick = prev;
+document.getElementById("fs").onclick   = toggleFs;
+
+function toggleFs(){
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* ───────── fit stage to viewport ───────── */
+const scaler = document.getElementById("scaler");
+function fit(){
+  const sc = Math.min(window.innerWidth/1280, window.innerHeight/720);
+  scaler.style.transform = `scale(${sc})`;
+}
+window.addEventListener("resize", fit);
+fit();
+
+/* fade the keyboard hint after a few seconds */
+setTimeout(() => document.querySelector(".hint")?.classList.add("gone"), 6000);
+
+/* deep-link via hash (also handles browser back/forward) */
+window.addEventListener("hashchange", () => {
+  const n = parseInt(location.hash.replace("#","")) || 1;
+  if (n-1 !== cur) show(n-1);
+});
+const start = parseInt(location.hash.replace("#","")) || 1;
+show(start-1);
+</script>
+</body>
+</html>

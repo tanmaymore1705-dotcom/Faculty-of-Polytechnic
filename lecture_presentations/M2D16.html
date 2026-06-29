@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module 2 · Day 16 — String Methods</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ─────────────────────────  THEME  ───────────────────────── */
+  :root{
+    --bg:#0A0A0F; --surface:#111122; --card:#15152A;
+    --border:#262640; --border-br:#353556;
+    --text:#E2E8F0; --text-br:#F1F5F9; --muted:#94A3B8; --dim:#64748B; --faint:#475569;
+    --cyan:#00D4FF; --cyan-dim:#0891A8; --yellow:#FFD43B; --green:#34D399; --red:#F87171; --purple:#A78BFA;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+    --disp:'Space Grotesk','IBM Plex Sans',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#050507; color:var(--text); font-family:var(--sans);
+    overflow:hidden; display:grid; place-items:center;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ─────────────────────────  STAGE  ───────────────────────── */
+  .scaler{ transform-origin:center center; }
+  .stage{
+    width:1280px; height:720px; position:relative;
+    background:var(--bg); overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.6); border-radius:10px;
+  }
+  .slide{
+    position:absolute; inset:0; padding:56px 64px 48px;
+    display:flex; flex-direction:column;
+    opacity:0; visibility:hidden; transition:opacity .35s ease;
+  }
+  .slide.active{ opacity:1; visibility:visible; }
+
+  /* staggered entrance */
+  .slide.active .r{ animation:rise .5s cubic-bezier(.2,.7,.2,1) both;
+    animation-delay:calc(var(--d,0) * 55ms); }
+  @keyframes rise{ from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none} }
+
+  /* ─────────────────────────  PRIMITIVES  ───────────────────────── */
+  .eyebrow{ font-family:var(--mono); font-size:13px; font-weight:600;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--cyan); }
+  .h-title{ font-family:var(--disp); font-weight:700; color:var(--text-br);
+    line-height:1.08; }
+  .lede{ font-size:17px; color:var(--muted); line-height:1.55; max-width:62ch; }
+  .body-text{ font-size:18px; color:var(--text); line-height:1.55; max-width:64ch; }
+
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:10px; }
+  .card.accent{ border-color:var(--cyan); background:rgba(0,212,255,.05); }
+
+  /* code block */
+  .code{ background:#0c0c14; border:1px solid var(--border); border-radius:9px;
+    overflow:hidden; display:flex; flex-direction:column; min-height:0; }
+  .cbar{ display:flex; align-items:center; gap:7px; padding:9px 13px;
+    border-bottom:1px solid var(--border); flex:0 0 auto; }
+  .cd{ width:9px; height:9px; border-radius:50%; background:#5C5C7A; }
+  .cf{ margin-left:8px; font-family:var(--mono); font-size:11.5px; color:var(--dim); }
+  .cpre{ margin:0; padding:14px 16px; overflow:auto; flex:1 1 auto; }
+  .cpre code{ font-family:var(--mono); font-size:15px; line-height:1.62;
+    color:var(--text); white-space:pre; display:block; }
+  /* syntax */
+  .kw{ color:var(--cyan); } .const{ color:var(--purple); }
+  .bif{ color:var(--yellow); } .num{ color:#FFA657; }
+  .str{ color:var(--green); } .com{ color:var(--dim); font-style:italic; }
+  .err{ color:var(--red); font-style:italic; }
+
+  /* ─────────────────────────  HUD  ───────────────────────── */
+  .progress{ position:fixed; top:0; left:0; height:3px; background:var(--cyan);
+    width:0; z-index:50; transition:width .35s ease; box-shadow:0 0 10px var(--cyan); }
+  .hud{ position:fixed; bottom:18px; right:20px; z-index:50;
+    display:flex; align-items:center; gap:14px;
+    font-family:var(--mono); font-size:13px; color:var(--dim);
+    background:rgba(17,17,34,.72); backdrop-filter:blur(8px);
+    border:1px solid var(--border); border-radius:999px; padding:7px 14px;
+    opacity:.5; transition:opacity .25s; }
+  .hud:hover{ opacity:1; }
+  .hud button{ all:unset; cursor:pointer; color:var(--muted); line-height:0;
+    padding:3px 6px; border-radius:6px; transition:color .15s,background .15s;
+    font-size:16px; font-family:var(--mono); }
+  .hud button:hover{ color:var(--cyan); background:rgba(0,212,255,.1); }
+  .hud .count b{ color:var(--cyan); }
+  .hud .sep{ width:1px; height:16px; background:var(--border); }
+  .hint{ position:fixed; bottom:18px; left:20px; z-index:50;
+    font-family:var(--mono); font-size:11px; color:var(--faint);
+    opacity:.7; transition:opacity .6s; }
+  .hint.gone{ opacity:0; }
+  .hint b{ color:var(--dim); }
+
+  /* slide-specific helpers */
+  .day-tag{ position:absolute; top:58px; right:72px; font-family:var(--mono);
+    font-size:14px; color:var(--dim); letter-spacing:.18em; }
+  .footer{ margin-top:auto; }
+  .callout{ border-left:3px solid var(--yellow); background:rgba(255,212,59,.06);
+    padding:14px 18px; border-radius:6px; color:var(--text); font-size:15px;
+    line-height:1.55; }
+  .callout b{ color:var(--yellow); }
+  .pill{ display:inline-block; font-family:var(--mono); font-size:12px;
+    background:rgba(0,212,255,.13); color:var(--cyan); padding:3px 9px;
+    border-radius:999px; letter-spacing:.06em; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
+  .num-list{ list-style:none; counter-reset:s; padding:0; }
+  .num-list li{ counter-increment:s; padding:10px 0 10px 46px; position:relative;
+    font-size:17px; color:var(--text); line-height:1.55; border-bottom:1px solid var(--border); }
+  .num-list li:last-child{ border-bottom:none; }
+  .num-list li::before{ content:counter(s,decimal-leading-zero);
+    position:absolute; left:0; top:10px; font-family:var(--mono);
+    font-size:14px; color:var(--cyan); font-weight:600; }
+
+  /* ─────────────────────────  PRINT (PDF backup)  ───────────────────────── */
+  @media print{
+    @page{ size:1280px 720px; margin:0; }
+    body{ display:block; overflow:visible; background:#fff; }
+    .scaler{ transform:none !important; }
+    .stage{ box-shadow:none; border-radius:0; }
+    .slide{ position:relative; opacity:1 !important; visibility:visible !important;
+      page-break-after:always; break-after:page; transition:none; }
+    .slide .r{ animation:none !important; }
+    .hud,.hint,.progress{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="scaler" id="scaler">
+<div class="stage" id="stage">
+
+  <!-- ═══════ SLIDE 1 · TITLE ═══════ -->
+  <section class="slide active" style="justify-content:center; padding:64px 72px;">
+    <div style="position:absolute;inset:0;
+      background-image:repeating-linear-gradient(transparent 0,transparent 89px,var(--border) 89px,var(--border) 90px);
+      opacity:.6;"></div>
+    <div style="position:relative;">
+      <div class="r eyebrow" style="--d:0; margin-bottom:26px;">&gt;&gt; Module 02 / Day 16 / Lecture</div>
+      <h1 class="r h-title" style="--d:1; font-size:74px; letter-spacing:-1px;">String Methods</h1>
+      <div class="r" style="--d:2; font-family:var(--disp); font-weight:500; font-style:italic;
+        font-size:40px; color:var(--cyan); margin-top:10px;">Module 2 begins — Python in practice</div>
+
+      <div class="r" style="--d:3; margin-top:44px; font-size:18px; color:var(--muted); max-width:60ch; line-height:1.55;">
+        Module 1 taught you to <em style="color:var(--text);">think</em> in Python. Module 2 is about the messy real world — and the real world is full of <em style="color:var(--text);">text</em>.
+      </div>
+
+      <div class="r" style="--d:4; display:flex; gap:42px; margin-top:46px; font-size:15px;
+        font-family:var(--sans);">
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Lecture</span>
+          <div style="color:var(--text-br);margin-top:4px;">75 min · 09:00–10:15</div></div>
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Lab</span>
+          <div style="color:var(--text-br);margin-top:4px;">60 min · Clean up messy text</div></div>
+        <div><span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;">Module</span>
+          <div style="color:var(--cyan);margin-top:4px;">M2 · Python in Practice</div></div>
+      </div>
+    </div>
+    <div class="day-tag">DAY 16 / 40</div>
+  </section>
+
+  <!-- ═══════ SLIDE 2 · AGENDA ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Today's roadmap</div>
+    <h2 class="r h-title" style="--d:1; font-size:44px; margin-top:8px;">Six tools for taming text</h2>
+
+    <ol class="r num-list" style="--d:2; margin-top:30px; max-width:80ch;">
+      <li>The golden rule — <b style="color:var(--text-br);">strings never change</b>, methods return new ones</li>
+      <li>Case &amp; whitespace — <code style="font-family:var(--mono);color:var(--bif,var(--yellow));">.lower()</code>, <code style="font-family:var(--mono);color:var(--yellow);">.upper()</code>, <code style="font-family:var(--mono);color:var(--yellow);">.strip()</code></li>
+      <li>Find &amp; replace — <code style="font-family:var(--mono);color:var(--yellow);">.replace()</code></li>
+      <li>Breaking apart — <code style="font-family:var(--mono);color:var(--yellow);">.split()</code> turns a string into a list</li>
+      <li>Sticking together — <code style="font-family:var(--mono);color:var(--yellow);">.join()</code> turns a list into a string</li>
+      <li>Lab — clean up a block of messy text</li>
+    </ol>
+
+    <div class="r footer" style="--d:3; display:flex; align-items:center; gap:14px;
+      border:1.5px solid var(--cyan); border-radius:10px; padding:14px 20px;
+      background:rgba(0,212,255,.04);">
+      <span class="pill">PRACTICAL · 1 HR</span>
+      <span style="font-size:16px;color:var(--text);">By noon you'll submit a PR that turns a paragraph of junk into clean data.</span>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 3 · HOOK ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; The hook</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;">Real data is always messy.</h2>
+    <p class="r body-text" style="--d:2; margin-top:18px;">
+      Names with stray spaces. Emails in <code style="font-family:var(--mono);color:var(--green);">MIXED case</code>. A list jammed together with commas. Nobody hands you tidy text — you have to <em style="color:var(--cyan);font-style:normal;">clean it yourself</em>.
+    </p>
+
+    <div class="r code" style="--d:3; margin-top:26px; max-width:820px;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">the_mess.py</span></div>
+<pre class="cpre"><code><span class="kw">raw</span> = <span class="str">"  Aisha , ROHIT,sneha  ,  Vikram "</span>
+<span class="com"># You want: ['Aisha', 'Rohit', 'Sneha', 'Vikram']</span>
+<span class="com"># String methods are how you get there.</span></code></pre>
+    </div>
+
+    <div class="r callout footer" style="--d:4;">
+      <b>A method</b> is just a function that belongs to a value. You call it with a dot: <code style="font-family:var(--mono);color:var(--yellow);">value.method()</code>. Strings come with dozens built in.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 4 · STRINGS ARE IMMUTABLE ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 01 / 05 · The golden rule</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Methods return a <em>new</em> string</h2>
+    <p class="r lede" style="--d:2; margin-top:14px;">
+      A string can never be changed in place. Every method hands you back a brand-new string and leaves the original untouched. So you must <b style="color:var(--text);">catch the result</b>.
+    </p>
+
+    <div class="grid-2" style="margin-top:24px; flex:1; min-height:0;">
+      <div class="r code" style="--d:3;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">does_nothing.py</span></div>
+<pre class="cpre"><code><span class="kw">name</span> = <span class="str">"aisha"</span>
+name.upper()        <span class="com"># makes "AISHA"...</span>
+<span class="bif">print</span>(name)         <span class="com"># ...but prints <span class="err">aisha</span> 😟</span>
+<span class="com"># The new string was thrown away.</span></code></pre>
+      </div>
+      <div class="r code" style="--d:4;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">does_it_right.py</span></div>
+<pre class="cpre"><code><span class="kw">name</span> = <span class="str">"aisha"</span>
+<span class="kw">name</span> = name.upper()  <span class="com"># catch the result!</span>
+<span class="bif">print</span>(name)         <span class="com"># prints <span style="color:var(--green);">AISHA</span> ✅</span></code></pre>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:5; margin-top:20px;">
+      <b>Remember this one thing</b> and half your string bugs disappear: <code style="font-family:var(--mono);color:var(--yellow);">text = text.something()</code>, not just <code style="font-family:var(--mono);">text.something()</code>.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 5 · CASE & WHITESPACE ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 02 / 05 · Case &amp; whitespace</div>
+    <h2 class="r h-title" style="--d:1; font-size:38px; margin-top:8px;">Tidy up case and stray spaces</h2>
+
+    <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:22px; margin-top:24px; flex:1; min-height:0;">
+      <div class="r code" style="--d:2;">
+        <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">tidy.py</span></div>
+<pre class="cpre"><code><span class="str">"Hello"</span>.lower()       <span class="com"># 'hello'</span>
+<span class="str">"Hello"</span>.upper()       <span class="com"># 'HELLO'</span>
+<span class="str">"aisha khan"</span>.title() <span class="com"># 'Aisha Khan'</span>
+
+<span class="str">"   spaces   "</span>.strip()  <span class="com"># 'spaces' — ends trimmed</span>
+<span class="str">"xxhixx"</span>.strip(<span class="str">"x"</span>)    <span class="com"># 'hi' — strip any chars</span></code></pre>
+      </div>
+      <div class="r callout" style="--d:3; align-self:start;">
+        <b>Why it matters.</b><br>
+        <code style="font-family:var(--mono);color:var(--yellow);">.lower()</code> makes comparisons fair: <code style="font-family:var(--mono);color:var(--green);">"YES" == "yes"</code> is <code style="font-family:var(--mono);color:var(--red);">False</code>, but <code style="font-family:var(--mono);color:var(--green);">"YES".lower() == "yes"</code> is <code style="font-family:var(--mono);color:var(--green);">True</code>.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 6 · REPLACE ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 03 / 05 · Find &amp; replace</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;"><code style="font-family:var(--mono);font-weight:700;">.replace()</code> — swap one piece for another</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      Give it what to find and what to put in its place. It replaces <b style="color:var(--text);">every</b> occurrence.
+    </p>
+
+    <div class="r code" style="--d:3; margin-top:24px; max-width:860px;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">replace.py</span></div>
+<pre class="cpre"><code><span class="str">"2024-06-11"</span>.replace(<span class="str">"-"</span>, <span class="str">"/"</span>)   <span class="com"># '2024/06/11'</span>
+<span class="str">"I like cats"</span>.replace(<span class="str">"cats"</span>, <span class="str">"dogs"</span>)  <span class="com"># 'I like dogs'</span>
+<span class="str">"a b c d"</span>.replace(<span class="str">" "</span>, <span class="str">""</span>)      <span class="com"># 'abcd' — delete spaces</span></code></pre>
+    </div>
+
+    <div class="r footer callout" style="--d:4; margin-top:22px;">
+      <b>Deleting = replacing with nothing.</b> Replace a character with the empty string <code style="font-family:var(--mono);color:var(--green);">""</code> and it simply vanishes.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 7 · SPLIT ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 04 / 05 · Breaking apart</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;"><code style="font-family:var(--mono);font-weight:700;">.split()</code> — string &#8594; list</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      Cuts a string wherever it finds the separator, and gives you back a <b style="color:var(--text);">list</b> of the pieces.
+    </p>
+
+    <div class="r code" style="--d:3; margin-top:22px; flex:1; min-height:0;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">split.py</span></div>
+<pre class="cpre"><code><span class="str">"Aisha,Rohit,Sneha"</span>.split(<span class="str">","</span>)
+<span class="com"># → ['Aisha', 'Rohit', 'Sneha']</span>
+
+<span class="str">"the quick brown fox"</span>.split()
+<span class="com"># → ['the', 'quick', 'brown', 'fox']  (no arg = split on spaces)</span>
+
+<span class="kw">parts</span> = <span class="str">"name:Aisha:age:19"</span>.split(<span class="str">":"</span>)
+<span class="com"># → ['name', 'Aisha', 'age', '19']</span></code></pre>
+    </div>
+
+    <div class="r footer" style="--d:4; display:flex; gap:14px; align-items:center; margin-top:18px;">
+      <span class="pill">REMEMBER</span>
+      <span style="font-size:15px;color:var(--muted);">No argument splits on <em>any</em> whitespace and ignores extra spaces — perfect for counting words.</span>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 8 · JOIN ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 05 / 05 · Sticking together</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;"><code style="font-family:var(--mono);font-weight:700;">.join()</code> — list &#8594; string</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      The exact opposite of split. The <em>separator</em> goes in front, and you hand it the list. Reads backwards the first few times — that's normal.
+    </p>
+
+    <div class="r code" style="--d:3; margin-top:22px; flex:1; min-height:0;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">join.py</span></div>
+<pre class="cpre"><code><span class="kw">names</span> = [<span class="str">"Aisha"</span>, <span class="str">"Rohit"</span>, <span class="str">"Sneha"</span>]
+
+<span class="str">", "</span>.join(names)     <span class="com"># 'Aisha, Rohit, Sneha'</span>
+<span class="str">"-"</span>.join(names)      <span class="com"># 'Aisha-Rohit-Sneha'</span>
+<span class="str">""</span>.join(names)       <span class="com"># 'AishaRohitSneha'</span>
+
+<span class="com"># The glue ("separator") owns the .join — not the list.</span></code></pre>
+    </div>
+
+    <div class="r footer callout" style="--d:4; margin-top:18px;">
+      <b>split + join = a round trip.</b> Split text into a list, fix each piece, then join it back into a clean string. That's the heart of today's lab.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 9 · CHAINING ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Putting it together</div>
+    <h2 class="r h-title" style="--d:1; font-size:40px; margin-top:8px;">A cleaning pipeline</h2>
+    <p class="r lede" style="--d:2; margin-top:12px;">
+      Because each method returns a string, you can chain them — left to right, one transform after another.
+    </p>
+
+    <div class="r code" style="--d:3; margin-top:22px; max-width:900px;">
+      <div class="cbar"><span class="cd"></span><span class="cd"></span><span class="cd"></span><span class="cf">pipeline.py</span></div>
+<pre class="cpre"><code><span class="kw">raw</span> = <span class="str">"  Aisha , ROHIT,sneha  ,  Vikram "</span>
+
+<span class="kw">people</span> = raw.split(<span class="str">","</span>)            <span class="com"># split on commas</span>
+<span class="kw">clean</span> = []
+<span class="kw">for</span> p <span class="kw">in</span> people:
+    <span class="kw">clean</span>.append(p.strip().title())  <span class="com"># trim + tidy case, chained</span>
+
+<span class="bif">print</span>(clean)
+<span class="com"># → ['Aisha', 'Rohit', 'Sneha', 'Vikram'] ✅</span></code></pre>
+    </div>
+
+    <div class="r footer" style="--d:4; display:flex; gap:14px; align-items:center; margin-top:18px;">
+      <span class="pill">CHAINED</span>
+      <span style="font-size:15px;color:var(--muted);"><code style="font-family:var(--mono);">p.strip().title()</code> runs strip first, then title on its result — a tiny pipeline on one line.</span>
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 10 · MISTAKES ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; Common failures</div>
+    <h2 class="r h-title" style="--d:1; font-size:42px; margin-top:8px;">Four mistakes you'll make today</h2>
+
+    <ol class="r num-list" style="--d:2; margin-top:26px;">
+      <li>Forgetting to <b style="color:var(--text-br);">catch the result</b> — <code style="font-family:var(--mono);">text.strip()</code> alone does nothing.</li>
+      <li>Calling a string method on a <b style="color:var(--text-br);">list</b> (or vice-versa) — <code style="font-family:var(--mono);color:var(--green);">.split()</code> is for strings, <code style="font-family:var(--mono);color:var(--green);">.join()</code> needs a list.</li>
+      <li>Getting <code style="font-family:var(--mono);color:var(--yellow);">.join()</code> backwards — the separator owns it: <code style="font-family:var(--mono);color:var(--green);">", ".join(list)</code>.</li>
+      <li>Comparing text without <code style="font-family:var(--mono);color:var(--yellow);">.lower()</code> — <code style="font-family:var(--mono);color:var(--green);">"Yes" == "yes"</code> is <code style="font-family:var(--mono);color:var(--red);">False</code>.</li>
+    </ol>
+  </section>
+
+  <!-- ═══════ SLIDE 11 · LAB PREVIEW ═══════ -->
+  <section class="slide">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; 11:00 – 12:00 · Lab</div>
+    <h2 class="r h-title" style="--d:1; font-size:42px; margin-top:8px;">Today's lab — Clean Up Messy Text</h2>
+
+    <div class="grid-2" style="margin-top:30px;">
+      <div class="r card" style="--d:2; padding:24px;">
+        <div class="pill">PROBLEM 1</div>
+        <div style="font-family:var(--disp); font-size:24px; font-weight:600; color:var(--text-br); margin-top:14px;">Name Cleaner</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:15px; line-height:1.55;">
+          Given a string of comma-separated names with random spacing and case, output a clean, properly-capitalised list.
+        </p>
+      </div>
+      <div class="r card" style="--d:3; padding:24px;">
+        <div class="pill">PROBLEM 2</div>
+        <div style="font-family:var(--disp); font-size:24px; font-weight:600; color:var(--text-br); margin-top:14px;">Sentence Fixer</div>
+        <p style="color:var(--muted); margin-top:12px; font-size:15px; line-height:1.55;">
+          Take a messy sentence, strip it, fix the spacing, and rebuild it with <code style="font-family:var(--mono);color:var(--yellow);">join</code>. ★ replace a banned word with <code style="font-family:var(--mono);color:var(--green);">"***"</code>.
+        </p>
+      </div>
+    </div>
+
+    <div class="r footer callout" style="--d:4;">
+      <b>How to submit.</b> Create <code style="font-family:var(--mono);color:var(--yellow);">students/&lt;your-username&gt;/D16_text_cleaner.py</code>. Full brief in <code style="font-family:var(--mono);color:var(--cyan);">lab/module_2_practice/D16_text_cleaner/problem.md</code>. PR before 12:00.
+    </div>
+  </section>
+
+  <!-- ═══════ SLIDE 12 · RECAP ═══════ -->
+  <section class="slide" style="justify-content:center; padding:64px 80px;">
+    <div class="r eyebrow" style="--d:0;">&gt;&gt; End of Day 16</div>
+    <h2 class="r h-title" style="--d:1; font-size:54px; margin-top:8px;">What you can now do</h2>
+
+    <ul style="list-style:none; padding:0; margin-top:36px; max-width:80ch;">
+      <li class="r" style="--d:2; padding:12px 0; font-size:20px; color:var(--text); border-bottom:1px solid var(--border);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        Clean text with <code style="font-family:var(--mono);color:var(--yellow);">.strip()</code>, <code style="font-family:var(--mono);color:var(--yellow);">.lower()</code>, <code style="font-family:var(--mono);color:var(--yellow);">.replace()</code>.
+      </li>
+      <li class="r" style="--d:3; padding:12px 0; font-size:20px; color:var(--text); border-bottom:1px solid var(--border);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        Turn a string into a list with <code style="font-family:var(--mono);color:var(--yellow);">.split()</code> and back with <code style="font-family:var(--mono);color:var(--yellow);">.join()</code>.
+      </li>
+      <li class="r" style="--d:4; padding:12px 0; font-size:20px; color:var(--text);">
+        <span style="color:var(--cyan); font-family:var(--mono); font-size:14px; margin-right:14px;">&#10003;</span>
+        Remember that strings are immutable — always catch the result.
+      </li>
+    </ul>
+
+    <div class="r footer" style="--d:5; display:flex; align-items:center; gap:14px; font-size:15px; color:var(--muted);">
+      <span class="pill">UP NEXT</span>
+      <span>Reaching <em>inside</em> a string: <code style="font-family:var(--mono);color:var(--text);">slicing &amp; indexing</code> on <b style="color:var(--text-br);">Day 17</b>.</span>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<div class="hud">
+  <button id="prev" title="Previous (←)">&#x2039;</button>
+  <span class="count"><b id="cur">01</b> / <span id="total">12</span></span>
+  <button id="next" title="Next (→)">&#x203A;</button>
+  <span class="sep"></span>
+  <button id="fs" title="Fullscreen (F)">⛶</button>
+</div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen &nbsp; <b>Ctrl/⌘+P</b> save as PDF</div>
+
+<script>
+/* ───────── navigation ───────── */
+const slides = [...document.querySelectorAll(".slide")];
+const total  = slides.length;
+let cur = 0;
+document.getElementById("total").textContent = String(total).padStart(2,"0");
+
+function show(i){
+  cur = Math.max(0, Math.min(total-1, i));
+  slides.forEach((s,n) => s.classList.toggle("active", n===cur));
+  document.getElementById("cur").textContent = String(cur+1).padStart(2,"0");
+  document.getElementById("progress").style.width = ((cur+1)/total*100)+"%";
+  location.hash = cur+1;
+}
+const next = () => show(cur+1);
+const prev = () => show(cur-1);
+
+document.addEventListener("keydown", e => {
+  if (["ArrowRight"," ","PageDown","Enter"].includes(e.key)) { e.preventDefault(); next(); }
+  else if (["ArrowLeft","PageUp","Backspace"].includes(e.key)) { e.preventDefault(); prev(); }
+  else if (e.key === "Home") show(0);
+  else if (e.key === "End")  show(total-1);
+  else if (e.key.toLowerCase() === "f") toggleFs();
+});
+document.getElementById("next").onclick = next;
+document.getElementById("prev").onclick = prev;
+document.getElementById("fs").onclick   = toggleFs;
+
+function toggleFs(){
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+/* ───────── fit stage to viewport ───────── */
+const scaler = document.getElementById("scaler");
+function fit(){
+  const sc = Math.min(window.innerWidth/1280, window.innerHeight/720);
+  scaler.style.transform = `scale(${sc})`;
+}
+window.addEventListener("resize", fit);
+fit();
+
+/* fade the keyboard hint after a few seconds */
+setTimeout(() => document.querySelector(".hint")?.classList.add("gone"), 6000);
+
+/* deep-link via hash (also handles browser back/forward) */
+window.addEventListener("hashchange", () => {
+  const n = parseInt(location.hash.replace("#","")) || 1;
+  if (n-1 !== cur) show(n-1);
+});
+const start = parseInt(location.hash.replace("#","")) || 1;
+show(start-1);
+</script>
+</body>
+</html>

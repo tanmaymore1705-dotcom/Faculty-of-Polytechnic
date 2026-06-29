@@ -1,0 +1,44 @@
+========================================
+           GRADE BUDDY
+========================================
+1. Add subjects
+2. View report
+3. View history
+4. Quit
+
+Your choice: 1
+Subject name: Maths
+  Mark 1 (0-100): 85
+  Mark 2 (0-100): 90
+  Mark 3 (0-100): 78
+Add another subject? (y/n): n
+
+Your choice: 1
+Subject name: Physics
+  Mark 1 (0-100): 30
+  Mark 2 (0-100): 28
+  Mark 3 (0-100): 35
+Add another subject? (y/n): n
+
+Your choice: 2
+
+============================================================
+                    GRADE REPORT
+============================================================
+Subject          | M1  | M2  | M3  | Avg  | Grade | Result
+------------------------------------------------------------
+Maths            |  85 |  90 |  78 | 84.3 |   B   | DISTINCTION
+Physics          |  30 |  28 |  35 | 31.0 |   F   | FAIL
+------------------------------------------------------------
+Overall Average: 57.7
+============================================================
+
+Your choice: 3
+--- Session History ---
+[1] Added 1 subject(s)
+[2] Added 1 subject(s)
+[3] Viewed report
+----------------------
+
+Your choice: 4
+Goodbye! Keep studying hard!

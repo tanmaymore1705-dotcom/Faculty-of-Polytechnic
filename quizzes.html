@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quizzes — Faculty of Polytechnic, Akole</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --surface2: #162032; --border: #334155;
+      --text: #e2e8f0; --muted: #94a3b8; --dim: #64748b;
+      --blue: #3b82f6; --blue-d: #2563eb;
+      --green: #22c55e; --purple: #8b5cf6; --orange: #f59e0b; --pink: #ec4899; --indigo: #6366f1;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem; }
+
+    /* ── Nav ── */
+    .nav { position: sticky; top: 0; z-index: 100; background: rgba(15,23,42,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .nav-logo { font-weight: 700; font-size: 1rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .nav-logo span { color: var(--blue); }
+    .nav-links { display: flex; gap: 0.25rem; }
+    .nav-links a { padding: 0.4rem 0.85rem; border-radius: 6px; font-size: 0.875rem; color: var(--muted); transition: background 0.15s, color 0.15s; }
+    .nav-links a:hover, .nav-links a.active { background: var(--surface); color: var(--text); }
+    .nav-links a.btn-nav { background: var(--blue); color: #fff; font-weight: 600; }
+    .nav-links a.btn-nav:hover { background: var(--blue-d); }
+    .nav-ham { display: none; background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.35rem 0.6rem; color: var(--muted); cursor: pointer; font-size: 1.1rem; }
+    @media (max-width: 600px) {
+      .nav-links { display: none; flex-direction: column; position: absolute; top: 60px; left: 0; right: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.75rem 1.25rem; gap: 0.25rem; }
+      .nav-links.open { display: flex; }
+      .nav-ham { display: block; }
+    }
+
+    /* ── Hero ── */
+    .hero { padding: 3.5rem 0 3rem; text-align: center; position: relative; overflow: hidden; }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59,130,246,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge { display: inline-block; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.35); color: #93c5fd; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.3rem 1rem; border-radius: 999px; margin-bottom: 1rem; }
+    .hero h1 { font-size: clamp(2rem, 5vw, 2.75rem); font-weight: 800; color: #f8fafc; line-height: 1.15; margin-bottom: 0.75rem; }
+    .hero-sub { font-size: 1rem; color: var(--muted); max-width: 580px; margin: 0 auto 2rem; }
+
+    /* ── Section headings ── */
+    section { padding: 4rem 0; }
+    .section-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); margin-bottom: 0.5rem; }
+    .section-title { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; }
+    .section-sub { color: var(--muted); font-size: 0.95rem; max-width: 620px; margin-bottom: 2.5rem; }
+
+    /* ── Quiz Grid ── */
+    .quiz-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .quiz-card { background: var(--surface); border: 2px solid var(--border); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column; gap: 1rem; transition: all 0.15s; }
+    .quiz-card:hover { border-color: var(--accent, var(--blue)); transform: translateY(-4px); }
+    .quiz-card.beginner { --accent: var(--blue); border-color: rgba(59,130,246,0.5); }
+    .quiz-card.advanced { --accent: var(--indigo); border-color: rgba(99,102,241,0.5); }
+
+    .quiz-badge { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; width: fit-content; }
+    .quiz-card.beginner .quiz-badge { color: #93c5fd; }
+    .quiz-card.advanced .quiz-badge { color: #a5b4fc; }
+
+    .quiz-card h3 { font-size: 1.35rem; font-weight: 700; color: #f1f5f9; }
+    .quiz-card p { font-size: 0.95rem; color: var(--muted); line-height: 1.6; flex: 1; }
+    .quiz-meta { display: flex; gap: 1.5rem; font-size: 0.85rem; color: var(--dim); flex-wrap: wrap; }
+    .quiz-meta span { display: flex; align-items: center; gap: 0.3rem; }
+
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.35rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s; border: none; width: 100%; justify-content: center; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-d); transform: translateY(-2px); }
+    .btn-advanced { background: var(--indigo); color: #fff; }
+    .btn-advanced:hover { background: #4f46e5; transform: translateY(-2px); }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--border); padding: 2rem 0; text-align: center; font-size: 0.82rem; color: var(--dim); margin-top: 2rem; }
+    footer a { color: var(--blue); }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">🐍 <span>FOP</span> · Akole</a>
+    <button class="nav-ham" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="lectures.html">Lectures</a>
+      <a href="labs.html">Labs</a>
+      <a href="quizzes.html" class="active btn-nav">Quizzes</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">✅ Assessment</div>
+    <h1>Python Quizzes</h1>
+    <p class="hero-sub">Test your Python knowledge with two comprehensive quizzes covering foundational concepts and advanced topics.</p>
+  </div>
+</section>
+
+<!-- ── Quizzes ── -->
+<section>
+  <div class="container">
+    <p class="section-label">Test Your Skills</p>
+    <h2 class="section-title">Choose Your Challenge</h2>
+    <p class="section-sub">Start with the beginner quiz to solidify Python fundamentals, or jump to the advanced quiz to tackle more complex concepts.</p>
+
+    <div class="quiz-grid">
+      <!-- Beginner Quiz -->
+      <div class="quiz-card beginner">
+        <div class="quiz-badge">📚 Beginner</div>
+        <h3>Python Fundamentals Quiz</h3>
+        <p>Test your understanding of core Python concepts including variables, data types, control flow, functions, loops, and basic operations. Perfect for reinforcing foundational knowledge.</p>
+        <div class="quiz-meta">
+          <span>📋 Multiple questions</span>
+          <span>⏱️ 20 mins</span>
+        </div>
+        <a href="docs/quizzes/python_quiz.html" class="btn btn-primary">Start Quiz →</a>
+      </div>
+
+      <!-- Advanced Quiz -->
+      <div class="quiz-card advanced">
+        <div class="quiz-badge">🔥 Advanced</div>
+        <h3>Python Advanced Quiz</h3>
+        <p>Challenge yourself with advanced Python concepts including list comprehensions, lambda functions, decorators, error handling, and object-oriented programming. For seasoned developers.</p>
+        <div class="quiz-meta">
+          <span>📋 40 questions</span>
+          <span>⏱️ 30 mins</span>
+        </div>
+        <a href="docs/quizzes/python_quiz_advanced.html" class="btn btn-advanced">Take Advanced Quiz →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <p>Faculty of Polytechnic, Akole &nbsp;·&nbsp; Visiting Faculty: <a href="https://github.com/ss-deshmukh" target="_blank">Siddhesh Deshmukh</a> &nbsp;·&nbsp; <a href="https://github.com/ss-deshmukh/Faculty-of-Polytechnic" target="_blank">GitHub Repository</a></p>
+  </div>
+</footer>
+
+<script>
+  document.querySelector('.nav-ham')?.addEventListener('click', function() {
+    this.nextElementSibling.classList.toggle('open');
+  });
+</script>
+
+</body>
+</html>

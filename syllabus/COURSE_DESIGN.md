@@ -1,10 +1,15 @@
-# Faculty of Polytechnic — 2-Month Python Course
+# Faculty of Polytechnic — Python → Blockchain → Polkadot Course
 
-**Design doc · 2026-05-29 · v1**
+**Design doc · 2026-05-29 · v1 · Updated 2026-06-12**
 
 This document is the active course plan. The previous `blockchain-syllabus.html`
 (Bits → Polkadot/Smoldot in 40 days, JS/Rust) was scrapped as too advanced for
 the audience and is kept in this folder only as historical reference.
+
+**2026-06-12 update:** After completing the Python foundations and practice modules
+(Days 1–20), the course pivots to Blockchain Basics (Module 3, Days 21–30) and
+Polkadot Basics (Module 4, Days 31–40). All content remains Python-grounded and
+beginner-appropriate — no JavaScript, no Rust.
 
 ---
 
@@ -31,13 +36,16 @@ By the end of the course, students should be:
 1. Comfortable writing small Python programs from scratch (variables, control
    flow, functions, lists/dicts, files, error handling).
 2. Familiar with the GitHub PR workflow as a daily habit.
-3. Able to build a working "tiny blockchain" in Python that mirrors the
-   structure of a real Polkadot block, with a simplified Proof-of-Work loop
-   and a conceptual understanding of how Polkadot's Nominated Proof-of-Stake
-   differs.
+3. Able to understand blockchain fundamentals — hashing, block structure,
+   chain validation, Proof of Work, and Proof of Stake — and demonstrate
+   them in Python.
+4. Familiar with Polkadot at a conceptual level: relay chain, parachains,
+   DOT token, NPoS, and the ecosystem — enough to navigate Subscan and
+   Polkadot.js apps confidently.
 
-The blockchain finale is **a Python-first project** that happens to be about
-blockchain — not a blockchain course that happens to use Python.
+The course moves Python → Blockchain → Polkadot as a single flowing narrative:
+Python skills directly enable the blockchain project; the blockchain project
+directly explains Polkadot.
 
 ## 3. Structure — "Spiral" cadence
 
@@ -65,20 +73,22 @@ problems across the course earns a "Stretch Award" at the wrap-up.
 | D1  | Binary + GitHub + PR flow (done)                 | `problem_1.py` — seconds in a week        |
 | D2  | Python Essentials I — vars, if/else, loops, funcs (done) | FizzBuzz + warm-ups               |
 | D3  | Collections — lists, tuples, dicts, sets (done)  | (review with class)                       |
-| D4  | I/O, types, conversions — `input()`, `int()`/`str()`, f-strings revisited | Greeter + tip calculator |
-| D5 (Fri) | Recap + **Mini-project: "About Me" script** | Reads inputs, prints formatted bio. ★ input validation |
-| D6  | `if/elif/else` deep dive — chained, nested, boolean ops | Grade classifier, leap year check |
-| D7  | `for` loops + `range()` — counters, accumulators | Sum 1..N, multiplication tables           |
-| D8  | `while` loops, `break`/`continue`, infinite loops | Find-first-match problems                |
-| D9  | Combine day — loops + conditions                 | Pattern printing, prime check             |
-| D10 (Fri) | **Mini-Quiz 1** + **Mini-project: Number Guessing Game** | ★ track attempts, warmer/colder hint |
-| D11 | Functions — define, call, parameters, return     | Refactor D5 script into functions         |
+| D4  | I/O, types, conversions — `input()`, `int()`/`str()`, f-strings revisited (done) | Greeter + tip calculator |
+| D5 (Fri) | Recap + **Mini-project: "About Me" script** (done) | Reads inputs, prints formatted bio. ★ input validation |
+| D6  | `if/elif/else` deep dive — chained, nested, boolean ops (done) | Grade classifier, leap year check |
+| D7  | `for` loops + `range()` — counters, accumulators (done) | Sum 1..N, multiplication tables           |
+| D8  | `while` loops, `break`/`continue`, infinite loops (done) | Find-first-match problems                |
+| D9  | Combine day — loops + conditions (done)          | Pattern printing, prime check             |
+| D10 (Fri) | **Mini-Quiz 1** + **Mini-project: Number Guessing Game** (done) | ★ track attempts, warmer/colder hint |
+| D11 | Functions — define, call, parameters, return (done) | Refactor D5 script into functions         |
 | D12 | Multiple params, defaults, returning multiple values | Geometry helpers (area, perimeter)    |
 | D13 | Scope — local vs global; why globals are usually bad | Bug-hunt exercise                     |
 | D14 | Combine day — refactor messy code into clean functions | Given spaghetti code, clean it       |
 | D15 (Fri) | **Mini-project: Simple Calculator**       | Functions for +, −, ×, ÷, %. ★ history of operations |
 
-### Module 2 — Python in Practice (Weeks 4–6, D16–D30)
+### Module 2 — Python in Practice (Weeks 4–5, D16–D20)
+
+Python practice condensed to the essential skills needed before the blockchain module.
 
 | Day | Topic                                            | Lab                                       |
 | --- | ------------------------------------------------ | ----------------------------------------- |
@@ -87,44 +97,61 @@ problems across the course earns a "Stretch Award" at the wrap-up.
 | D18 | List operations — `append`, `sort`, `index`, membership | Roll-call manager                  |
 | D19 | Combine day — text + list together               | Word-list deduplicator                    |
 | D20 (Fri) | **Mini-Quiz 2** + **Mini-project: Word Counter** | Count words/lines/chars in a paragraph |
-| D21 | Dict basics — key/value, lookup, iteration       | Build a tiny **wallet-address → owner** lookup (Polkadot flavor) |
-| D22 | Common dict patterns — counting, grouping        | Vote tally, group names by first letter   |
-| D23 | Sets — unique values, membership                 | Find common/unique items between lists    |
-| D24 | Combine day — nested dicts/lists                 | Library catalog (book → author/year)      |
-| D25 (Fri) | **Mini-project: Word Frequency Counter** | Read text → dict of word counts, top 5    |
-| D26 | Reading text files — `open`, `with`, line iteration | Read a names file, print each          |
-| D27 | Writing files; CSV-like data by hand (split on comma) | Save results to a file              |
-| D28 | `try/except` basics — file-not-found, bad input  | Robust input handler                      |
-| D29 | `import` — `random`, `math`, `datetime`. **Includes a "pick a validator weighted by stake" snippet** to seed D36. | Random quiz generator |
-| D30 (Fri) | **Mini-Quiz 3** + **Mini-project: Grade Sheet Reader** | Read CSV of marks, compute avg & grade |
 
-### Module 3 — Capstone: Tiny Blockchain in Python, Polkadot-Themed (Weeks 7–8, D31–D40)
+> **Note (2026-06-12):** The original Module 2 continued through D30 (dicts,
+> sets, files, try/except). Those topics are now taught *in context* within
+> Module 3 — dicts appear when we build blocks, files appear when we save the
+> chain, try/except appears in validation. This tightens the course and prevents
+> content from feeling disconnected.
 
-Polkadot is the running real-world anchor throughout this module.
+### Module 3 — Blockchain Basics in Python (Weeks 5–7, D21–D30)
 
-| Day | Topic + Polkadot anchor                                                  | Lab                                       |
-| --- | ------------------------------------------------------------------------ | ----------------------------------------- |
-| D31 | **What is a hash?** `hashlib.sha256`. Real-world: Polkadot block hashes use Blake2. Show a block on Subscan, point at the `hash` field. | Hash strings; observe avalanche effect |
-| D32 | **A block = a dict.** Polkadot blocks have `parent_hash`, `number`, `state_root`, `extrinsics_root`. Our toy block mirrors the first two. | Write `make_block()` with those field names |
-| D33 | **A chain = a list.** Every Polkadot block points to its parent via `parent_hash` — same idea, simpler form. Show two consecutive blocks on Subscan, prove the link. | Build a 3-block chain manually |
-| D34 | **Validation.** Polkadot validators run a much heavier check (signatures, state transitions). Ours: "does each `parent_hash` match the previous block's `hash`?" | Tamper with one block, prove `is_valid_chain()` catches it |
-| D35 (Fri) | **Capstone Checkpoint** — working linked + validated chain        | ★ add an `extrinsics` field (list of "transactions") |
-| D36 | **Consensus.** Bitcoin uses Proof of Work — we code that, it's satisfying. **Polkadot uses Nominated Proof of Stake** — validators are *chosen by how much DOT is staked behind them*. End of lecture: a 20-line weighted-random "pick the next validator" simulation to compare. | Mine 3 blocks with simplified PoW. ★ rewrite as PoS validator picker |
-| D37 | **CLI menu.** Frame as "your own mini Polkadot.js, but in the terminal." | Wrap chain ops in an `add/view/validate` menu |
-| D38 | **Save/load JSON.** Real Polkadot nodes persist state in a database; we use a JSON file. | Persist chain across runs                |
-| D39 | **Final mini-test** (60 min practical — 2 Python problems + 1 small blockchain extension) | — |
-| D40 (Fri) | **Presentations + course wrap-up.** Last 30 min: "where to go next" — Polkadot docs, Subscan, substrate-connect, and the old `blockchain-syllabus.html` as their "next 6 months" reading list. | Each student demos their chain (~5 min) |
+All blockchain concepts are taught through Python. Every new Python tool
+(dicts, hashlib, json, try/except) is introduced exactly when needed to
+build the next part of the chain.
+
+| Day | Topic                                                    | Lab                                                  |
+| --- | -------------------------------------------------------- | ---------------------------------------------------- |
+| D21 | **What is a blockchain?** The trust problem, distributed ledgers, immutability | Draw a ledger; represent it as a Python dict |
+| D22 | **Hashing: the magic fingerprint.** `hashlib.sha256`, avalanche effect, one-way property | Hash strings; observe output change with one character |
+| D23 | **Anatomy of a block.** Block = Python dict with `index`, `timestamp`, `data`, `hash`, `previous_hash`. Genesis block. | Write `make_block()`, print the first block |
+| D24 | **Building the chain.** Linking via `previous_hash`; chain = list of blocks. Tamper and see it break. | Build a 3-block chain; connect each block |
+| D25 | **Validating the chain.** `is_valid_chain()` — two checks: recalculate hash + verify link. | Tamper with block 2, prove validation fails |
+| D26 | **Proof of Work.** Mining = finding a nonce so the hash starts with zeros. Difficulty controls hardness. | Mine 3 blocks; try increasing difficulty |
+| D27 | **Proof of Stake.** PoW vs PoS trade-offs. NPoS (Polkadot). Weighted validator selection in Python. | Write `weighted_choice()`, run 10 validator elections |
+| D28 | **Wallets and transactions.** Key pairs concept; transactions as Python dicts `{from, to, amount}`. Add to block data. | Create 3 transactions, pack into a block |
+| D29 | **The complete picture.** Full tiny blockchain walkthrough; compare to real Polkadot block structure on Subscan. | Run the complete chain end-to-end; add 5 transactions |
+| D30 (Fri) | **Mini-Quiz 3 + Mini-project: Tiny Blockchain** | Full chain with mine/validate/view functions. ★ JSON save/load |
+
+### Module 4 — Polkadot Basics (Weeks 7–8, D31–D40)
+
+Purely conceptual — no new Python. Students apply blockchain understanding
+to make sense of a real production network. All anchored in live tools
+(Subscan, Polkadot.js apps).
+
+| Day | Topic                                                    | Lab                                                  |
+| --- | -------------------------------------------------------- | ---------------------------------------------------- |
+| D31 | **What is Polkadot?** The multi-chain vision, scalability trilemma, shared security | Explore polkadot.network; identify relay chain + 3 parachains |
+| D32 | **The Relay Chain.** Polkadot's consensus hub; validators; GRANDPA finality; 6-second block time | Open Subscan, find latest relay chain block, read every field |
+| D33 | **Parachains.** Parallel blockchains; free security from relay chain; real examples (Moonbeam, Astar, Acala) | Pick one parachain on parachains.info; find it on Subscan |
+| D34 | **DOT Token.** Three jobs: staking, governance, bonding. OpenGov voting. | Open Polkadot.js apps → staking; find active validators |
+| D35 | **NPoS deep dive.** Validators, nominators, election algorithm, rewards, slashing. | Find top validator on Polkadot.js; count its nominators |
+| D36 | **Reading Subscan.** Block explorer walkthrough; extrinsics; reading a real transfer | Find 3 real transfers; note from/to/amount |
+| D37 | **The Polkadot ecosystem.** DeFi (Acala, HydraDX), smart contracts (Moonbeam, Astar), infrastructure (Asset Hub) | Visit parachains.info; pick 5 parachains and describe them |
+| D38 | **Polkadot's future.** Polkadot 2.0 — Agile Coretime. JAM (awareness only). Resources for next steps. | Read one page of wiki.polkadot.network; summarise 3 facts |
+| D39 | **Final mini-test** (60 min — 2 Python/blockchain problems + 1 Polkadot concept question) | — |
+| D40 (Fri) | **Presentations + course wrap-up.** Student demos; the full arc Python → Blockchain → Polkadot; next steps. | Each student demos their tiny blockchain (~5 min) |
 
 ## 5. Assessment
 
 ### Mini-tests faculty conducts
 
-| Test          | When           | Format                                              |
-| ------------- | -------------- | --------------------------------------------------- |
-| Mini-Quiz 1   | D10 (Fri Wk 2) | 15 min, 2 short problems (loops + conditions)        |
-| Mini-Quiz 2   | D20 (Fri Wk 4) | 15 min, 2 problems (strings + lists)                |
-| Mini-Quiz 3   | D30 (Fri Wk 6) | 15 min, 2 problems (dicts + files)                  |
-| Final mini-test | D39          | 60 min practical — 2 Python problems + 1 blockchain |
+| Test          | When           | Format                                                           |
+| ------------- | -------------- | ---------------------------------------------------------------- |
+| Mini-Quiz 1   | D10 (Fri Wk 2) | 15 min, 2 short problems (loops + conditions)                     |
+| Mini-Quiz 2   | D20 (Fri Wk 4) | 15 min, 2 problems (strings + lists)                             |
+| Mini-Quiz 3   | D30 (Fri Wk 6) | 15 min, 2 problems (blockchain Python — hash + block building)   |
+| Final mini-test | D39          | 60 min — 2 Python/blockchain problems + 1 Polkadot concept question |
 
 ### Continuous PR portfolio
 
@@ -277,20 +304,16 @@ Key decisions inside this layout:
    on it. Add a comment noting it's superseded by
    `lab/module_1_foundations/D01_seconds_in_week/`.
 
-## 8. What to build first (after this design is approved)
+## 8. Build status (as of 2026-06-12)
 
-In order:
+| Module | Lectures done | Labs done |
+| ------ | ------------- | --------- |
+| M1 Python Foundations (D1–D15) | M1D2–M1D15 ✓ | module_1_foundations/ ✓ |
+| M2 Python in Practice (D16–D20) | M2D16–M2D20 ✓ | module_2_practice/ (D16–D20) ✓ |
+| M3 Blockchain Basics (D21–D30) | M3D21–M3D30 ✓ | module_3_blockchain/ — TBD |
+| M4 Polkadot Basics (D31–D40) | M4D31–M4D40 ✓ | module_4_polkadot/ — TBD |
 
-1. **`syllabus/COURSE_PLAN.html`** — student-facing interactive course overview
-   (style modeled on existing decks; replaces `blockchain-syllabus.html` as
-   the active plan to show students). To demo to the class on D4 as the
-   official new structure.
-2. **Repo skeleton** — create `lab/module_1_foundations/`,
-   `lab/module_2_practice/`, `lab/module_3_capstone/` and migrate the existing
-   `problem_1.py` into `lab/module_1_foundations/D01_seconds_in_week/`.
-3. **`README.md`** — short rewrite explaining the course and the workflow.
-4. **D4 lecture deck (`M1D4.html`)** and D4 lab (`D04_greeter/`).
-5. From there, build out one week of decks + labs at a time, **the weekend
-   before each week** so we can adjust based on what's landing.
+Lecture decks for Modules 3 and 4 were generated on 2026-06-12. Lab problem
+files for D21–D40 are the next build priority.
 
 A separate implementation plan will sequence this work.

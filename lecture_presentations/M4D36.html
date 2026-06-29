@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module 4 · Day 36 — Reading the Block Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0A0A0F;--surface:#111122;--card:#15152A;--border:#262640;--text:#E2E8F0;--text-br:#F1F5F9;--muted:#94A3B8;--dim:#64748B;--faint:#475569;--cyan:#00D4FF;--yellow:#FFD43B;--green:#34D399;--red:#F87171;--purple:#A78BFA;--pink:#E6007A;--acc:var(--pink);--mono:'IBM Plex Mono',ui-monospace,monospace;--sans:'IBM Plex Sans',system-ui,sans-serif;--disp:'Space Grotesk','IBM Plex Sans',sans-serif;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
+  body{background:#050507;color:var(--text);font-family:var(--sans);overflow:hidden;display:grid;place-items:center;-webkit-font-smoothing:antialiased;}
+  .scaler{transform-origin:center center;}
+  .stage{width:1280px;height:720px;position:relative;background:var(--bg);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);border-radius:10px;}
+  .slide{position:absolute;inset:0;padding:56px 64px 48px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s ease;}
+  .slide.active{opacity:1;visibility:visible;}
+  .slide.active .r{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0)*55ms);}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .eyebrow{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);}
+  .h-title{font-family:var(--disp);font-weight:700;color:var(--text-br);line-height:1.08;}
+  .lede{font-size:17px;color:var(--muted);line-height:1.55;max-width:62ch;}
+  .body-text{font-size:18px;color:var(--text);line-height:1.55;max-width:64ch;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;}
+  .card.accent{border-color:var(--acc);background:rgba(230,0,122,.05);}
+  .code{background:#0c0c14;border:1px solid var(--border);border-radius:9px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+  .cbar{display:flex;align-items:center;gap:7px;padding:9px 13px;border-bottom:1px solid var(--border);flex:0 0 auto;}
+  .cd{width:9px;height:9px;border-radius:50%;background:#5C5C7A;}
+  .cf{margin-left:8px;font-family:var(--mono);font-size:11.5px;color:var(--dim);}
+  .cpre{margin:0;padding:14px 16px;overflow:auto;flex:1 1 auto;}
+  .cpre code{font-family:var(--mono);font-size:15px;line-height:1.62;color:var(--text);white-space:pre;display:block;}
+  .kw{color:var(--cyan);}.bif{color:var(--yellow);}.num{color:#FFA657;}.str{color:var(--green);}.com{color:var(--dim);font-style:italic;}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--acc);width:0;z-index:50;transition:width .35s ease;box-shadow:0 0 10px var(--acc);}
+  .hud{position:fixed;bottom:18px;right:20px;z-index:50;display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:13px;color:var(--dim);background:rgba(17,17,34,.72);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:999px;padding:7px 14px;opacity:.5;transition:opacity .25s;}
+  .hud:hover{opacity:1;}
+  .hud button{all:unset;cursor:pointer;color:var(--muted);line-height:0;padding:3px 6px;border-radius:6px;transition:color .15s,background .15s;font-size:16px;}
+  .hud button:hover{color:var(--acc);background:rgba(230,0,122,.1);}
+  .hud .count b{color:var(--acc);}
+  .hud .sep{width:1px;height:16px;background:var(--border);}
+  .hint{position:fixed;bottom:18px;left:20px;z-index:50;font-family:var(--mono);font-size:11px;color:var(--faint);opacity:.7;transition:opacity .6s;}
+  .hint.gone{opacity:0;}
+  .day-tag{position:absolute;top:58px;right:72px;font-family:var(--mono);font-size:14px;color:var(--dim);letter-spacing:.18em;}
+  .footer{margin-top:auto;}
+  .callout{border-left:3px solid var(--acc);background:rgba(230,0,122,.06);padding:14px 18px;border-radius:6px;color:var(--text);font-size:15px;line-height:1.55;}
+  .callout b{color:var(--acc);}
+  .pill{display:inline-block;font-family:var(--mono);font-size:12px;background:rgba(230,0,122,.13);color:var(--acc);padding:3px 9px;border-radius:999px;letter-spacing:.06em;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+  .num-list{list-style:none;counter-reset:s;padding:0;}
+  .num-list li{counter-increment:s;padding:10px 0 10px 46px;position:relative;font-size:17px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);}
+  .num-list li:last-child{border-bottom:none;}
+  .num-list li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:10px;font-family:var(--mono);font-size:14px;color:var(--acc);font-weight:600;}
+  .chk-list{list-style:none;padding:0;}
+  .chk-list li{padding:12px 0 12px 0;font-size:20px;color:var(--text);line-height:1.55;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:flex-start;}
+  .chk-list li:last-child{border-bottom:none;}
+  .chk-list li .chk{color:var(--acc);font-size:20px;flex-shrink:0;margin-top:1px;}
+  .grid-bg{background-image:linear-gradient(rgba(230,0,122,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(230,0,122,.04) 1px,transparent 1px);background-size:40px 40px;}
+  .field-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:4px;}
+  .field-list li{font-family:var(--mono);font-size:14px;line-height:1.8;color:var(--text);}
+  .field-list li .fk{color:var(--acc);}
+  .field-list li .fv{color:var(--muted);}
+  .field-list li .fc{color:var(--dim);font-style:italic;}
+  @media print{@page{size:1280px 720px;margin:0}body{display:block;overflow:visible}.scaler{transform:none!important}.stage{box-shadow:none;border-radius:0}.slide{position:relative;opacity:1!important;visibility:visible!important;page-break-after:always}.slide .r{animation:none!important}.hud,.hint,.progress{display:none!important}}
+</style></head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="scaler" id="scaler"><div class="stage" id="stage">
+
+<!-- SLIDE 1: TITLE -->
+<div class="slide grid-bg" id="s1">
+  <div class="day-tag r" style="--d:0">DAY 36 / 40</div>
+  <div style="display:flex;flex-direction:column;justify-content:center;height:100%;gap:28px;">
+    <div class="eyebrow r" style="--d:1">&gt;&gt; Module 04 / Day 36 / Lecture</div>
+    <h1 class="h-title r" style="--d:2;font-size:68px;">Reading the Chain</h1>
+    <div class="r" style="--d:3;font-size:36px;font-style:italic;color:var(--acc);line-height:1.2;">Subscan — Polkadot's window to the world</div>
+    <p class="lede r" style="--d:4;max-width:70ch;">Every transaction ever made on Polkadot is public and visible. Today we learn to read it — blocks, extrinsics, accounts — using Subscan.</p>
+    <div class="r" style="--d:5;display:flex;gap:24px;flex-wrap:wrap;margin-top:8px;">
+      <span style="font-family:var(--mono);font-size:13px;color:var(--dim);">Lecture 75 min</span>
+      <span style="color:var(--border);">|</span>
+      <span style="font-family:var(--mono);font-size:13px;color:var(--dim);">Lab 60 min · Find 3 real transfers on Subscan</span>
+      <span style="color:var(--border);">|</span>
+      <span style="font-family:var(--mono);font-size:13px;color:var(--acc);">M4 · Polkadot Basics</span>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 2: AGENDA -->
+<div class="slide" id="s2">
+  <div class="day-tag r" style="--d:0">DAY 36 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:12px;">&gt;&gt; Today's agenda</div>
+  <h2 class="h-title r" style="--d:2;font-size:42px;margin-bottom:28px;">What we'll cover</h2>
+  <ol class="num-list r" style="--d:3;">
+    <li>What is a block explorer? — the blockchain's search engine</li>
+    <li>Subscan — navigating the interface</li>
+    <li>Reading a block — every field explained</li>
+    <li>Reading an extrinsic (transaction)</li>
+    <li>Reading an account — balance and history</li>
+    <li>Lab — find real transfers in the latest block</li>
+  </ol>
+</div>
+
+<!-- SLIDE 3: WHAT IS A BLOCK EXPLORER -->
+<div class="slide" id="s3">
+  <div class="day-tag r" style="--d:0">DAY 36 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 01 / 04 · The tool</div>
+  <h2 class="h-title r" style="--d:2;font-size:40px;margin-bottom:14px;">A block explorer = a search engine for the blockchain</h2>
+  <p class="body-text r" style="--d:3;margin-bottom:20px;">Because blockchains are public, anyone can query the state directly. A block explorer is a website that does this for you — it reads the chain and displays blocks, transactions, and account balances in a readable format.</p>
+  <div class="grid-2 r" style="--d:4;flex:1 1 auto;">
+    <div class="card" style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.1em;">WHAT YOU CAN SEARCH FOR</div>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:8px;">
+        <li style="font-size:14px;color:var(--muted);line-height:1.55;padding-left:14px;border-left:2px solid var(--border);">Block number or hash → see all transactions in that block</li>
+        <li style="font-size:14px;color:var(--muted);line-height:1.55;padding-left:14px;border-left:2px solid var(--border);">Account address → see balance + full history</li>
+        <li style="font-size:14px;color:var(--muted);line-height:1.55;padding-left:14px;border-left:2px solid var(--border);">Transaction hash → see status, sender, receiver, amount</li>
+      </ul>
+    </div>
+    <div class="card accent" style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--acc);font-weight:600;letter-spacing:.1em;">POLKADOT'S BLOCK EXPLORER</div>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:8px;">
+        <li style="font-size:14px;color:var(--text);line-height:1.55;padding-left:14px;border-left:2px solid var(--acc);"><span style="font-family:var(--mono);color:var(--acc);">Subscan (subscan.io)</span> is the most popular</li>
+        <li style="font-size:14px;color:var(--text);line-height:1.55;padding-left:14px;border-left:2px solid var(--acc);">Also: polkadot.js.org/apps has a built-in explorer</li>
+        <li style="font-size:14px;color:var(--text);line-height:1.55;padding-left:14px;border-left:2px solid var(--acc);">For Ethereum: Etherscan. Same concept, different network.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout r footer" style="--d:5;margin-top:18px;"><b>Why this matters:</b> When you send DOT to someone, they don't have to trust you — they can verify on Subscan in seconds. No bank statement needed. The chain IS the statement.</div>
+</div>
+
+<!-- SLIDE 4: NAVIGATING SUBSCAN -->
+<div class="slide" id="s4">
+  <div class="day-tag r" style="--d:0">DAY 36 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 02 / 04 · The interface</div>
+  <h2 class="h-title r" style="--d:2;font-size:40px;margin-bottom:22px;">A tour of polkadot.subscan.io</h2>
+  <ol class="num-list r" style="--d:3;font-size:16px;">
+    <li><b style="color:var(--text-br);">Home page:</b> live feed of recent blocks (left) and recent extrinsics (right). Updates every ~6 seconds.</li>
+    <li><b style="color:var(--text-br);">"Blocks" menu:</b> paginated list of all blocks. Click any to see its contents.</li>
+    <li><b style="color:var(--text-br);">"Extrinsics" menu:</b> all individual operations (transfers, staking, governance votes) across all blocks.</li>
+    <li><b style="color:var(--text-br);">Search bar:</b> paste any block number, hash, address, or extrinsic hash.</li>
+    <li><b style="color:var(--text-br);">Network switcher (top right):</b> change between Polkadot, Kusama, or specific parachains like Moonbeam.</li>
+  </ol>
+  <div class="callout r footer" style="--d:4;margin-top:auto;"><b>Subscan covers all major Polkadot ecosystem chains.</b> The same UI works for relay chain, parachains, and Kusama. The data format is identical because all use Substrate.</div>
+</div>
+
+<!-- SLIDE 5: READING A BLOCK -->
+<div class="slide" id="s5">
+  <div class="day-tag r" style="--d:0">DAY 36 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 03 / 04 · Blocks</div>
+  <h2 class="h-title r" style="--d:2;font-size:40px;margin-bottom:20px;">Every field in a Subscan block</h2>
+  <div class="card accent r" style="--d:3;padding:24px;flex:1 1 auto;">
+    <ul class="field-list">
+      <li><span class="fk">Block Number:   </span><span class="fv">22,847,391</span>  <span class="fc">← sequential block index (our "index" field)</span></li>
+      <li><span class="fk">Block Hash:     </span><span class="fv">0x1a3f...</span>  <span class="fc">← SHA-256-like fingerprint of this block</span></li>
+      <li><span class="fk">Parent Hash:    </span><span class="fv">0x9c82...</span>  <span class="fc">← hash of the previous block (our "previous_hash"!)</span></li>
+      <li><span class="fk">State Root:     </span><span class="fv">0xef79...</span>  <span class="fc">← fingerprint of all account balances after this block</span></li>
+      <li><span class="fk">Extrinsics Root:</span><span class="fv">0x5fee...</span>  <span class="fc">← fingerprint of all operations in this block</span></li>
+      <li><span class="fk">Block Time:     </span><span class="fv">2026-06-12 09:00:06</span>  <span class="fc">← when this block was produced</span></li>
+      <li><span class="fk">Validator:      </span><span class="fv">5GrwvaEF5...</span>  <span class="fc">← who produced this block</span></li>
+      <li><span class="fk">Extrinsics:     </span><span class="fv">4</span>  <span class="fc">← how many operations are in this block</span></li>
+    </ul>
+  </div>
+  <div class="callout r footer" style="--d:4;margin-top:18px;"><b>Parent Hash is our previous_hash.</b> Click it on Subscan and it takes you to block 22,847,390. This is the exact chain-link you built in Python on Day 24.</div>
+</div>
+
+<!-- SLIDE 6: READING AN EXTRINSIC -->
+<div class="slide" id="s6">
+  <div class="day-tag r" style="--d:0">DAY 36 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; What is an extrinsic?</div>
+  <h2 class="h-title r" style="--d:2;font-size:38px;margin-bottom:12px;">Extrinsics — Polkadot's word for "transaction"</h2>
+  <p class="lede r" style="--d:3;margin-bottom:18px;">In Polkadot, an extrinsic is any external message sent to the chain — a transfer, a staking action, a governance vote. It's a broader term than "transaction."</p>
+  <div class="grid-2 r" style="--d:4;flex:1 1 auto;">
+    <div class="card" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.1em;margin-bottom:14px;">A TRANSFER EXTRINSIC</div>
+      <ul class="field-list" style="font-size:13px;">
+        <li><span class="fk">Extrinsic Hash: </span><span class="fv">0xabcd...</span></li>
+        <li><span class="fk">Module:         </span><span style="color:var(--yellow);">balances</span></li>
+        <li><span class="fk">Call:           </span><span style="color:var(--yellow);">transfer_keep_alive</span></li>
+        <li><span class="fk">From:           </span><span class="fv">5GrwvaEF5...</span></li>
+        <li><span class="fk">To:             </span><span class="fv">5FHneW46...</span></li>
+        <li><span class="fk">Amount:         </span><span style="color:#FFA657;">100 DOT</span></li>
+        <li><span class="fk">Fee:            </span><span class="fv">0.0015 DOT</span></li>
+        <li><span class="fk">Status:         </span><span style="color:var(--green);">Success</span></li>
+      </ul>
+    </div>
+    <div class="card accent" style="padding:24px;">
+      <div style="font-family:var(--mono);font-size:13px;color:var(--acc);font-weight:600;letter-spacing:.1em;margin-bottom:14px;">YOUR PYTHON TRANSACTION</div>
+      <div style="font-family:var(--mono);font-size:14px;line-height:1.8;color:var(--text);">{<br>&nbsp;&nbsp;<span style="color:var(--acc);">"from"</span>:   <span style="color:var(--green);">"Alice"</span>,<br>&nbsp;&nbsp;<span style="color:var(--acc);">"to"</span>:     <span style="color:var(--green);">"Bob"</span>,<br>&nbsp;&nbsp;<span style="color:var(--acc);">"amount"</span>: <span style="color:#FFA657;">10</span>,<br>}</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-top:14px;">Same concept — source, destination, amount.<br>Polkadot adds: module, call, fee, status, signature.</p>
+    </div>
+  </div>
+  <div class="callout r footer" style="--d:5;margin-top:18px;"><b>Every extrinsic has a hash</b> — you can look up any specific operation by its hash, the same way you look up a block by its hash.</div>
+</div>
+
+<!-- SLIDE 7: READING AN ACCOUNT -->
+<div class="slide" id="s7">
+  <div class="day-tag r" style="--d:0">DAY 36 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; Accounts</div>
+  <h2 class="h-title r" style="--d:2;font-size:38px;margin-bottom:22px;">Looking up any address on Subscan</h2>
+  <ol class="num-list r" style="--d:3;font-size:16px;flex:1 1 auto;">
+    <li>Paste a Polkadot address (starts with "1" or "5") in the Subscan search bar</li>
+    <li>See: <b style="color:var(--text-br);">free balance</b> (available), <b style="color:var(--text-br);">reserved balance</b> (locked for staking/deposits), total</li>
+    <li>See: <b style="color:var(--text-br);">full transaction history</b> — every DOT sent and received, with timestamp</li>
+    <li>See: <b style="color:var(--text-br);">staking info</b> — whether this address is a validator or nominator, stake amount</li>
+  </ol>
+  <div class="callout r" style="--d:4;margin-top:18px;"><b>Privacy note:</b> Addresses are pseudonymous. The address is public; the person behind it is not. But if you ever share your address publicly (to receive DOT), anyone can see your full transaction history.</div>
+  <div class="footer r" style="--d:5;margin-top:16px;display:flex;align-items:center;gap:12px;">
+    <span class="pill">EXPLORE</span>
+    <span style="font-size:14px;color:var(--muted);">Go to subscan.io → type the Polkadot Foundation's address: <span style="font-family:var(--mono);color:var(--acc);">13UVJyLnbVp9R…</span> and see the history of one of the most active accounts on the network.</span>
+  </div>
+</div>
+
+<!-- SLIDE 8: LAB PREVIEW -->
+<div class="slide" id="s8">
+  <div class="day-tag r" style="--d:0">DAY 36 / 40</div>
+  <div class="eyebrow r" style="--d:1;margin-bottom:10px;">&gt;&gt; 11:00 – 12:00 · Lab</div>
+  <h2 class="h-title r" style="--d:2;font-size:42px;margin-bottom:22px;">Today's lab — Block Detective</h2>
+  <div class="grid-2 r" style="--d:3;flex:1 1 auto;">
+    <div class="card" style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="pill">CORE</span>
+        <span style="font-family:var(--mono);font-size:13px;color:var(--muted);">Find real transfers</span>
+      </div>
+      <p style="font-size:14px;color:var(--text);line-height:1.65;">Open <span style="font-family:var(--mono);color:var(--acc);">subscan.io</span>. Click the latest block. Go to its Extrinsics tab. Find <b>3 transfer extrinsics</b>.</p>
+      <p style="font-size:14px;color:var(--muted);line-height:1.65;">For each, record:</p>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:6px;">
+        <li style="font-size:14px;color:var(--muted);padding-left:14px;border-left:2px solid var(--border);">From address (first 8 chars)</li>
+        <li style="font-size:14px;color:var(--muted);padding-left:14px;border-left:2px solid var(--border);">To address (first 8 chars)</li>
+        <li style="font-size:14px;color:var(--muted);padding-left:14px;border-left:2px solid var(--border);">Amount in DOT</li>
+      </ul>
+      <p style="font-size:13px;color:var(--dim);">Save as Python comments.</p>
+    </div>
+    <div class="card accent" style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="pill">STRETCH</span>
+        <span style="font-family:var(--mono);font-size:13px;color:var(--acc);">★ Follow the money</span>
+      </div>
+      <p style="font-size:14px;color:var(--text);line-height:1.65;">Pick one sender from your transfers. Look up their full address on Subscan.</p>
+      <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+        <li style="font-size:14px;color:var(--text);padding-left:14px;border-left:2px solid var(--acc);">How many total transactions have they made?</li>
+        <li style="font-size:14px;color:var(--text);padding-left:14px;border-left:2px solid var(--acc);">What is their current balance?</li>
+        <li style="font-size:14px;color:var(--text);padding-left:14px;border-left:2px solid var(--acc);">Find the largest transfer they've ever made.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout r footer" style="--d:4;margin-top:18px;"><b>How to submit.</b> Create <span style="font-family:var(--mono);color:var(--acc);">students/&lt;username&gt;/D36_block_explorer.py</span> with your findings as comments. PR before 12:00.</div>
+</div>
+
+<!-- SLIDE 9: RECAP -->
+<div class="slide" id="s9">
+  <div style="display:flex;flex-direction:column;justify-content:center;height:100%;padding:0 16px;gap:28px;">
+    <div class="eyebrow r" style="--d:1;">&gt;&gt; End of Day 36</div>
+    <h2 class="h-title r" style="--d:2;font-size:52px;">The chain is readable</h2>
+    <ul class="chk-list r" style="--d:3;">
+      <li><span class="chk">✓</span><span>Subscan is a block explorer — a search engine for the Polkadot chain.</span></li>
+      <li><span class="chk">✓</span><span>Blocks have Hash and Parent Hash — the same chain-link structure you built in Python.</span></li>
+      <li><span class="chk">✓</span><span>Extrinsics are Polkadot's term for operations (transfers, staking, votes) — like our transaction dicts, with more fields.</span></li>
+    </ul>
+    <div class="footer r" style="--d:4;margin-top:12px;">
+      <span class="pill">UP NEXT</span>
+      <span style="font-size:15px;color:var(--muted);margin-left:12px;">Day 37: The Polkadot ecosystem — every major parachain, what it does, and how they all connect.</span>
+    </div>
+  </div>
+</div>
+
+</div></div>
+<div class="hud"><button id="prev">&#x2039;</button><span class="count"><b id="cur">01</b> / <span id="total">9</span></span><button id="next">&#x203A;</button><span class="sep"></span><button id="fs">⛶</button></div>
+<div class="hint"><b>←/→</b> navigate &nbsp; <b>F</b> fullscreen</div>
+<script>
+const slides=[...document.querySelectorAll(".slide")];const total=slides.length;let cur=0;document.getElementById("total").textContent=String(total).padStart(2,"0");function show(i){cur=Math.max(0,Math.min(total-1,i));slides.forEach((s,n)=>s.classList.toggle("active",n===cur));document.getElementById("cur").textContent=String(cur+1).padStart(2,"0");document.getElementById("progress").style.width=((cur+1)/total*100)+"%";location.hash=cur+1;}const next=()=>show(cur+1);const prev=()=>show(cur-1);document.addEventListener("keydown",e=>{if(["ArrowRight"," ","PageDown","Enter"].includes(e.key)){e.preventDefault();next();}else if(["ArrowLeft","PageUp","Backspace"].includes(e.key)){e.preventDefault();prev();}else if(e.key==="Home")show(0);else if(e.key==="End")show(total-1);else if(e.key.toLowerCase()==="f")toggleFs();});document.getElementById("next").onclick=next;document.getElementById("prev").onclick=prev;document.getElementById("fs").onclick=toggleFs;function toggleFs(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}const scaler=document.getElementById("scaler");function fit(){const sc=Math.min(window.innerWidth/1280,window.innerHeight/720);scaler.style.transform=`scale(${sc})`;}window.addEventListener("resize",fit);fit();setTimeout(()=>document.querySelector(".hint")?.classList.add("gone"),6000);window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.replace("#",""))||1;if(n-1!==cur)show(n-1);});show((parseInt(location.hash.replace("#",""))||1)-1);
+</script></body></html>

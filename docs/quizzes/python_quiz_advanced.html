@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python Advanced Quiz — Faculty of Polytechnic</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 1rem;
+      width: 100%;
+      max-width: 680px;
+      padding: 2rem;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+
+    /* ── Header ── */
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header .badge {
+      display: inline-block;
+      background: #6366f1;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 0.75rem;
+    }
+    .header h1 { font-size: 1.6rem; font-weight: 700; color: #f1f5f9; }
+    .header p  { font-size: 0.875rem; color: #94a3b8; margin-top: 0.25rem; }
+
+    /* ── Progress ── */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .progress-bar-track {
+      flex: 1;
+      height: 6px;
+      background: #334155;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+    .progress-label { font-size: 0.8rem; color: #64748b; white-space: nowrap; }
+
+    /* ── Timer ── */
+    .timer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 1.25rem;
+    }
+    .timer span { color: #94a3b8; font-weight: 600; }
+
+    /* ── Question ── */
+    .question-number { font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; }
+    .question-text {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.55;
+      margin-bottom: 1.25rem;
+    }
+    .question-text code {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #7dd3fc;
+    }
+    .code-block {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin: 0.5rem 0 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      color: #7dd3fc;
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    /* ── Options ── */
+    .options { display: flex; flex-direction: column; gap: 0.65rem; }
+    .option-btn {
+      background: #0f172a;
+      border: 1.5px solid #334155;
+      border-radius: 0.65rem;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      cursor: pointer;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+    .option-btn:hover:not(:disabled) {
+      border-color: #6366f1;
+      background: #1e1f4e;
+      color: #f1f5f9;
+    }
+    .option-btn .key {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #94a3b8;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+    .option-btn.correct {
+      border-color: #22c55e;
+      background: #052e16;
+      color: #bbf7d0;
+    }
+    .option-btn.correct .key { background: #22c55e; color: #fff; border-color: #22c55e; }
+    .option-btn.wrong {
+      border-color: #ef4444;
+      background: #2d0a0a;
+      color: #fecaca;
+    }
+    .option-btn.wrong .key { background: #ef4444; color: #fff; border-color: #ef4444; }
+    .option-btn:disabled { cursor: not-allowed; }
+
+    /* ── Feedback ── */
+    .feedback {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.65rem;
+      font-size: 0.875rem;
+      display: none;
+    }
+    .feedback.show { display: block; }
+    .feedback.correct-fb { background: #052e16; border: 1px solid #22c55e; color: #86efac; }
+    .feedback.wrong-fb   { background: #2d0a0a; border: 1px solid #ef4444; color: #fca5a5; }
+
+    /* ── Next button ── */
+    .next-btn {
+      display: none;
+      width: 100%;
+      margin-top: 1.25rem;
+      padding: 0.75rem;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 0.65rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .next-btn:hover { background: #4f46e5; }
+    .next-btn.show { display: block; }
+
+    /* ── Results ── */
+    #results { display: none; text-align: center; }
+    #results.show { display: block; }
+    .score-ring {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 1.25rem;
+    }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-circle-bg { fill: none; stroke: #334155; stroke-width: 10; }
+    .score-circle-fill {
+      fill: none;
+      stroke: #6366f1;
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 283;
+      stroke-dashoffset: 283;
+      transition: stroke-dashoffset 1s ease;
+    }
+    .score-text-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .score-ring-wrapper { position: relative; width: 120px; height: 120px; margin: 0 auto 1.25rem; }
+    .score-big { font-size: 1.75rem; font-weight: 700; color: #f1f5f9; }
+    .score-sub { font-size: 0.75rem; color: #64748b; }
+    .result-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .result-msg   { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.5rem; }
+
+    .stats-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    .stat {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.65rem;
+      padding: 0.65rem 1rem;
+      text-align: center;
+      min-width: 90px;
+    }
+    .stat-num { font-size: 1.2rem; font-weight: 700; }
+    .stat-lbl { font-size: 0.7rem; color: #64748b; }
+    .stat.correct-stat .stat-num { color: #22c55e; }
+    .stat.wrong-stat   .stat-num { color: #ef4444; }
+    .stat.time-stat    .stat-num { color: #6366f1; }
+
+    .restart-btn {
+      padding: 0.75rem 2rem;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 0.65rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .restart-btn:hover { background: #4f46e5; }
+
+    /* ── Start screen ── */
+    #start-screen { text-align: center; }
+    #start-screen h2 { font-size: 1.1rem; font-weight: 600; color: #f1f5f9; margin-bottom: 0.5rem; }
+    #start-screen p  { font-size: 0.875rem; color: #94a3b8; margin-bottom: 1.5rem; line-height: 1.6; }
+    .info-grid {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .info-pill {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 999px;
+      padding: 0.35rem 1rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+    .start-btn {
+      padding: 0.8rem 2.5rem;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 0.65rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .start-btn:hover { background: #4f46e5; transform: translateY(-1px); }
+
+    #quiz-area { display: none; }
+
+    @media (max-width: 480px) {
+      .card { padding: 1.25rem; }
+      .stats-row { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">⚡ Advanced Challenge</div>
+    <h1>🐍 Python Advanced Quiz</h1>
+    <p>Module 1 — Advanced Concepts & Tricky Edge Cases</p>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="start-screen">
+    <h2>Ready for a challenge?</h2>
+    <p>Test your deep Python knowledge with advanced questions covering edge cases, closures, comprehensions, and more.<br>This quiz is significantly harder than the basics!</p>
+    <div class="info-grid">
+      <span class="info-pill">📋 40 Questions</span>
+      <span class="info-pill">⏱ Timed</span>
+      <span class="info-pill">🔥 Advanced</span>
+    </div>
+    <button class="start-btn" onclick="startQuiz()">Start Advanced Quiz</button>
+  </div>
+
+  <!-- Quiz Area -->
+  <div id="quiz-area">
+    <div class="progress-row">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-label" id="progress-label">1 / 40</div>
+    </div>
+    <div class="timer">⏱ Time: <span id="timer-display">0:00</span></div>
+
+    <div class="question-number" id="q-number">Question 1</div>
+    <div class="question-text" id="q-text"></div>
+    <div id="q-code" class="code-block" style="display:none"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="score-ring-wrapper">
+      <svg class="score-ring" viewBox="0 0 100 100">
+        <circle class="score-circle-bg" cx="50" cy="50" r="45"/>
+        <circle class="score-circle-fill" id="score-arc" cx="50" cy="50" r="45"/>
+      </svg>
+      <div class="score-text-overlay">
+        <div class="score-big" id="score-big">0/40</div>
+        <div class="score-sub">score</div>
+      </div>
+    </div>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-msg"  id="result-msg"></div>
+    <div class="stats-row">
+      <div class="stat correct-stat">
+        <div class="stat-num" id="stat-correct">0</div>
+        <div class="stat-lbl">Correct</div>
+      </div>
+      <div class="stat wrong-stat">
+        <div class="stat-num" id="stat-wrong">0</div>
+        <div class="stat-lbl">Wrong</div>
+      </div>
+      <div class="stat time-stat">
+        <div class="stat-num" id="stat-time">0:00</div>
+        <div class="stat-lbl">Time</div>
+      </div>
+    </div>
+    <button class="restart-btn" onclick="restartQuiz()">Try Again</button>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  {q: "What is the output?", code: "x = [1, 2, 3]\ny = x\ny.append(4)\nprint(x)", opts: ["Error", "[1, 2, 3]", "[1, 2, 3, 4]", "[4]"], ans: 2},
+  {q: "What is the output?", code: "a = (1, 2, [3, 4])\na[2].append(5)\nprint(a)", opts: ["Can't modify tuples", "Error - tuples are immutable", "(1, 2, [3, 4])", "(1, 2, [3, 4, 5])"], ans: 3},
+  {q: "What's the difference between x = 5 and x = 5.0 in terms of memory?", opts: ["5.0 takes less memory", "No difference", "Depends on Python version", "5 takes less memory than 5.0"], ans: 3},
+  {q: "What is the output of: print(2 + 3 * 4 - 5 / 2)?", opts: ["6.0", "9.5", "11.5", "13.5"], ans: 2},
+  {q: "What does: 5 == 5.0 and 5 is 5.0 evaluate to?", opts: ["False, False", "True, True", "True, False", "False, True"], ans: 2},
+  {q: "What is the result of: not (True and False or True)?", opts: ["Error", "True", "False", "None"], ans: 2},
+  {q: "What is the output?", code: "s = 'hello'\nprint(s[::-1])", opts: ["hlelo", "Error", "olleh", "hello"], ans: 2},
+  {q: "What does this print?", code: "s = 'Python'\nprint(s[1:4])", opts: ["thon", "Pyt", "yth", "ytho"], ans: 2},
+  {q: "What is the output of: '{} {}'.format('hello', 'world')?", opts: ["hello world", "{} {}", "Error", "{0} {1}"], ans: 0},
+  {q: "What does 'hello world'.replace('world', 'Python') return?", opts: ["helloPython", "hello world", "hello Python", "Error"], ans: 2},
+  {q: "What is the output?", code: "result = [x**2 for x in range(4)]\nprint(result)", opts: ["[0, 1, 2, 3, 4]", "[0, 1, 2, 3]", "[1, 4, 9, 16]", "[0, 1, 4, 9]"], ans: 3},
+  {q: "What is the output?", code: "result = [x for x in range(5) if x % 2 == 0]\nprint(result)", opts: ["[2, 4]", "[1, 3]", "[0, 1, 2, 3, 4]", "[0, 2, 4]"], ans: 3},
+  {q: "What is the output?", code: "d = {x: x**2 for x in range(1, 4)}\nprint(d)", opts: ["{1: 2, 2: 3, 3: 4}", "Error", "{0: 0, 1: 1, 2: 4}", "{1: 1, 2: 4, 3: 9}"], ans: 3},
+  {q: "What does this code print?", code: "def func(a, b=10):\n    return a + b\nprint(func(5))", opts: ["Error", "10", "15", "5"], ans: 2},
+  {q: "What is the output?", code: "def func(*args):\n    return sum(args)\nprint(func(1, 2, 3, 4))", opts: ["Error", "4", "10", "(1, 2, 3, 4)"], ans: 2},
+  {q: "What does this print?", code: "def func(**kwargs):\n    return kwargs\nprint(func(name='John', age=25))", opts: ["None", "('name', 'John', 'age', 25)", "{'name': 'John', 'age': 25}", "Error"], ans: 2},
+  {q: "What is the output?", code: "x = 10\ndef func():\n    x = 20\n    return x\nprint(func())\nprint(x)", opts: ["10, 10", "20, 10", "20, 20", "Error"], ans: 1},
+  {q: "What is the output?", code: "x = 5\ndef outer():\n    def inner():\n        return x\n    return inner()\nprint(outer())", opts: ["undefined", "5", "None", "Error"], ans: 1},
+  {q: "What is the output?", code: "f = lambda x: x * 2\nprint(f(5))", opts: ["Error", "10", "2", "5"], ans: 1},
+  {q: "What does this print?", code: "result = list(map(lambda x: x**2, [1, 2, 3]))\nprint(result)", opts: ["6", "[1, 4, 9]", "Error", "[1, 2, 3]"], ans: 1},
+  {q: "What is the output?", code: "result = list(filter(lambda x: x > 2, [1, 2, 3, 4]))\nprint(result)", opts: ["Error", "[3, 4]", "[2, 3, 4]", "[1, 2, 3, 4]"], ans: 1},
+  {q: "What is the output?", code: "for i in range(5):\n    if i == 3:\n        break\n    print(i)", opts: ["0 1", "0 1 2 3", "0 1 2", "0 1 2 3 4"], ans: 2},
+  {q: "What does this print?", code: "for i in range(5):\n    if i == 2:\n        continue\n    print(i)", opts: ["0 1 3 4", "0 1 2", "1 3 4", "0 1 2 3 4"], ans: 0},
+  {q: "What is the output?", code: "d = {'a': 1, 'b': 2}\nprint(d.get('c', 'default'))", opts: ["Error", "default", "KeyError", "None"], ans: 1},
+  {q: "What does this print?", code: "s = {1, 2, 2, 3, 3, 3}\nprint(len(s))", opts: ["9", "3", "Error", "6"], ans: 1},
+  {q: "What is the output?", code: "d1 = {'a': 1, 'b': 2}\nd2 = {'b': 3, 'c': 4}\nd1.update(d2)\nprint(d1)", opts: ["{'a': 1, 'b': 2, 'b': 3, 'c': 4}", "{'a': 1, 'b': 3, 'c': 4}", "{'a': 1, 'b': 2, 'c': 4}", "Error"], ans: 1},
+  {q: "What is the output?", code: "lst = [1, 2, 3, 4, 5]\nprint(lst[-2:])", opts: ["[4, 5]", "[3, 4, 5]", "[5]", "Error"], ans: 0},
+  {q: "What does this print?", code: "s = 'Python'\nprint(s[10])", opts: ["None", "Error - IndexError", "''", "n"], ans: 1},
+  {q: "Which of these is considered FALSY in Python?", opts: ["[0]", "None", "[]", "'0'"], ans: 2},
+  {q: "What is the output?", code: "print(bool(''))\nprint(bool('hello'))", opts: ["True, False", "True, True", "False, True", "False, False"], ans: 2},
+  {q: "What is int(3.9)?", opts: ["3", "3.0", "Error", "4"], ans: 0},
+  {q: "What does int('3.5') return?", opts: ["3", "'3.5'", "Error", "3.5"], ans: 2},
+  {q: "What is the output?", code: "x = [1, 2, 3]\nprint(x + [4])", opts: ["[1, 2, 3] + [4]", "[5]", "[1, 2, 3, 4]", "Error"], ans: 2},
+  {q: "What is the output?", code: "def gen():\n    yield 1\n    yield 2\nprint(list(gen()))", opts: ["(1, 2)", "[1, 2]", "1 2", "Error"], ans: 1},
+  {q: "What is the output?", code: "x = [1, 2, 3]\ny = x[:]\ny.append(4)\nprint(x)", opts: ["[1, 2, 3]", "[4]", "Error", "[1, 2, 3, 4]"], ans: 0},
+  {q: "What is the output?", code: "count = 0\nfor i in range(3):\n    for j in range(2):\n        count += 1\nprint(count)", opts: ["5", "2", "6", "3"], ans: 2},
+  {q: "What does this print?", code: "result = []\nfor i in range(3):\n    for j in range(3):\n        if i == j:\n            result.append(i)\nprint(result)", opts: ["[]", "[0, 1, 1, 2, 2]", "[0, 1, 2]", "[0, 0, 1, 1, 2, 2]"], ans: 2},
+  {q: "What is the output?", code: "a, b = 1, 2\nprint(a, b)", opts: ["2 1", "(1, 2)", "1 2", "Error"], ans: 2},
+  {q: "What does this print?", code: "lists = zip([1, 2, 3], ['a', 'b', 'c'])\nprint(list(lists))", opts: ["[1, 2, 3, 'a', 'b', 'c']", "[(1, 'a'), (2, 'b'), (3, 'c')]", "Error", "(1, 'a', 2, 'b', 3, 'c')"], ans: 1},
+];
+
+const KEYS = ["A", "B", "C", "D"];
+
+let current = 0;
+let score   = 0;
+let answered = false;
+let startTime = null;
+let timerInterval = null;
+let wrongCount = 0;
+
+function fmtTime(secs) {
+  return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+}
+
+function startQuiz() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'block';
+  current = 0; score = 0; wrongCount = 0; answered = false;
+  startTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000);
+  renderQuestion();
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  document.getElementById('timer-display').textContent = fmtTime(elapsed);
+}
+
+function renderQuestion() {
+  answered = false;
+  const q = QUESTIONS[current];
+
+  document.getElementById('q-number').textContent = `Question ${current + 1}`;
+  document.getElementById('q-text').innerHTML = q.q;
+
+  const codeEl = document.getElementById('q-code');
+  if (q.code) {
+    codeEl.textContent = q.code;
+    codeEl.style.display = 'block';
+  } else {
+    codeEl.style.display = 'none';
+  }
+
+  const pct = (current / QUESTIONS.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${current + 1} / ${QUESTIONS.length}`;
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    const keySpan = document.createElement('span');
+    keySpan.className = 'key';
+    keySpan.textContent = KEYS[i];
+    const textSpan = document.createElement('span');
+    textSpan.textContent = opt;
+    btn.appendChild(keySpan);
+    btn.appendChild(textSpan);
+    btn.onclick = () => selectAnswer(i, btn);
+    opts.appendChild(btn);
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  fb.textContent = '';
+
+  const nb = document.getElementById('next-btn');
+  nb.className = 'next-btn';
+  nb.textContent = current === QUESTIONS.length - 1 ? 'See Results →' : 'Next Question →';
+}
+
+function selectAnswer(idx, btn) {
+  if (answered) return;
+  answered = true;
+
+  const q = QUESTIONS[current];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const fb = document.getElementById('feedback');
+  if (idx === q.ans) {
+    btn.classList.add('correct');
+    score++;
+    fb.textContent = '✓ Correct!';
+    fb.className = 'feedback correct-fb show';
+  } else {
+    btn.classList.add('wrong');
+    wrongCount++;
+    btns[q.ans].classList.add('correct');
+    fb.textContent = `✗ Incorrect. The correct answer is ${KEYS[q.ans]}.`;
+    fb.className = 'feedback wrong-fb show';
+  }
+
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= QUESTIONS.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+
+  document.getElementById('quiz-area').style.display = 'none';
+  const res = document.getElementById('results');
+  res.classList.add('show');
+
+  const pct = score / QUESTIONS.length;
+  document.getElementById('score-big').textContent = `${score}/${QUESTIONS.length}`;
+  document.getElementById('stat-correct').textContent = score;
+  document.getElementById('stat-wrong').textContent = wrongCount;
+  document.getElementById('stat-time').textContent = fmtTime(elapsed);
+
+  const arc = document.getElementById('score-arc');
+  const circumference = 2 * Math.PI * 45;
+  setTimeout(() => {
+    arc.style.strokeDashoffset = circumference * (1 - pct);
+    if (pct >= 0.85) arc.style.stroke = '#22c55e';
+    else if (pct >= 0.70) arc.style.stroke = '#84cc16';
+    else if (pct >= 0.5) arc.style.stroke = '#f59e0b';
+    else arc.style.stroke = '#ef4444';
+  }, 100);
+
+  let title, msg;
+  if (pct === 1)       { title = '🏆 PERFECT! You are a Python master!'; msg = 'Flawless performance on advanced concepts.'; }
+  else if (pct >= 0.85) { title = '🎉 Excellent Work!'; msg = 'Advanced Python concepts are solid.'; }
+  else if (pct >= 0.70) { title = '👍 Very Good!'; msg = 'Keep studying edge cases and tricky behavior.'; }
+  else if (pct >= 0.55) { title = '📚 Good Progress!'; msg = 'Review the concepts you missed.'; }
+  else if (pct >= 0.40) { title = '💪 Keep Practicing!'; msg = 'Study Python\'s subtleties more deeply.'; }
+  else                 { title = '🔄 Review Time!'; msg = 'Review the fundamentals and work through more examples.'; }
+
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-msg').textContent   = msg;
+}
+
+function restartQuiz() {
+  document.getElementById('results').classList.remove('show');
+  clearInterval(timerInterval);
+  startQuiz();
+}
+</script>
+</body>
+</html>
