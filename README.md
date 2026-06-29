@@ -4,6 +4,8 @@
 
 An 8-week, 40-session course designed and delivered for diploma CS students — taking complete beginners from "what is a variable" to building a working blockchain and navigating the Polkadot ecosystem, entirely through hands-on code.
 
+📍 **Project URL**: [ss-deshmukh/Faculty-of-Polytechnic](https://github.com/ss-deshmukh/Faculty-of-Polytechnic)
+
 ---
 
 ## What We Covered
